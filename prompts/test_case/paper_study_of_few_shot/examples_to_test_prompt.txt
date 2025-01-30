@@ -1,0 +1,55 @@
+====================================================================================================================================================
+Helper constructors and methods:
+  Multiplier()
+  multiply(int a, int b)
+Method: public int multiply(int x, int y) {
+    return x * y;
+}
+Specification: x >= result && y >= result
+Test:
+
+====================================================================================================================================================
+Helper constructors and methods:
+  List()
+  repOk()
+  insert(int data)
+  toString()
+Method: public void insert(int data) {
+    if (data > this.x) {
+      next.insert(data);
+    } else {
+      next = new List(x, next);
+      x = data;
+    }
+    assert(true);
+}
+Specification: this.x <= orig(this.x) implies orig(this.x) < orig(this.next.next.x)
+Test:
+
+Specification: this.x != this.next.next.x + orig(this.next.next.x)
+Specification: data >= next.next.e || next.next.e = old(next.e)
+Specification: e != next.next.e + old(next.next.e)
+
+====================================================================================================================================================
+Helper constructors and methods:
+  StackAr( int capacity )
+  Object topAndPop( )
+  void push(Object x) throws Overflow
+  void pop( ) throws Underflow
+  Object top( )
+  void makeEmpty( )
+  boolean isFull( )
+  boolean isEmpty( )
+Method: public Object topAndPop( )
+{
+    if( isEmpty( ) )
+      return null;
+    Object result = top();
+        
+    theArray[topOfStack] = null;
+    topOfStack = topOfStack - 1;
+    assert (true);
+    return result;
+}
+Specification: daikon.Quant.size(this.theArray) == 4 || daikon.Quant.size(this.theArray) == 35 || daikon.Quant.size(this.theArray) == 97
+Test:

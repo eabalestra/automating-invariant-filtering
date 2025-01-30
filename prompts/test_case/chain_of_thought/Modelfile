@@ -1,0 +1,82 @@
+FROM llama3.1
+
+# Set the temperature to 1 [higher is more creative, lower is more coherent]
+PARAMETER temperature 1
+
+# Set the system message
+SYSTEM """
+Question: For the method public int add(int x, int y) {
+    return Math.addExact(x, y);
+} the specification is x <= result && y <= result. Which test case violates the specification?
+Answer: Let's think step by step. The method add(x, y) returns the exact sum of x and y using Math.addExact(x, y). The specification requires that both x and y be less than or equal to the result. Consider the case where x = -5 and y = -10. The result of add(-5, -10) is -15. Checking the specification: x <= result is -5 <= -15 (False) and y <= result is -10 <= -15 (False). Since both conditions fail, this test case violates the specification. The answer is:
+@Test
+public void testAdd_1() {
+    // Create a Calculator instance
+    com.example.Calculator calculator = new com.example.Calculator();
+    
+    // Define input values
+    int x = -5;
+    int y = -10;
+
+    // Perform the addition
+    int result = calculator.add(x, y);
+
+    // Assert that the result violates the specification
+    assertFalse(x <= result && y <= result);
+}
+
+Question: For the method public void insert(int data) {
+    if (data > this.x) {
+      next.insert(data);
+    } else {
+      next = new List(x, next);
+      x = data;
+    }
+    assert(true);
+} the specification is this.x != this.next.next.x + orig(this.next.next.x). Which test case violates the specification?
+Answer: Let's think step by step. The method insert(int data) adds an element to a sorted linked list. The specification requires that this.x should not be equal to this.next.next.x + orig(this.next.next.x). Let's consider the insertion sequence: insert -5, insert -5 again, insert -10. The resulting list structure would be: [-10, -5, -5]. Checking the specification: this.next.next.x = -5, orig(this.next.next.x) = -5, this.next.next.x + orig(this.next.next.x) = -5 + (-5) = -10. Since this.x = -10, the condition this.x != this.next.next.x + orig(this.next.next.x) fails. The answer is:
+@Test
+public void testInsert_1() {
+    DataStructures.List list = new DataStructures.List();
+
+    int next_next_x = -5;
+    int orig_next_next_x = -5;
+    int x = -10;
+
+    list.insert(orig_next_next_x);
+    list.insert(next_next_x);
+    list.insert(x);
+
+    assertTrue(list.repOk());
+    assertEquals(x, next_next_x + orig_next_next_x);
+}
+
+Question: For the method public static int clamp(int x, int min, int max)
+{
+    int result;
+    if (x < min) {
+      result = min;
+    } else if (x > max) {
+      result = max;
+    } else {
+      result = x;
+    }
+  
+    assert (true);
+    return result;
+}
+the specification is FuzzedInvariant ( (Integer_Variable_0 = -1) implies (Integer_Variable_1 != 0) ) holds for: <orig(max), return>. Which test case invalidates the specification?
+Answer: Let's think step by step. The method clamp(x, min, max) restricts the value of x to the range [min, max]. The specification requires that if max = -1, then the result should not be 0. Consider the test case with x = -1, min = 0, and max = -1. Since x < min is true, the result is set to min = 0. Checking the specification: max = -1, result = 0. Since max = -1 and result = 0, the condition return != 0 fails. The answer is:
+@Test
+public void testClamp_1() {
+    int x = -1;
+    int min = 0;
+    int max = -1;
+    
+    int result = jts.MathUtil.clamp(x, min, max);
+    
+    // True implies False is always False, so the test invalidates the specification
+    assertTrue(max == -1);
+    assertFalse(result == 0);
+}
+"""

@@ -1,0 +1,236 @@
+====================================================================================================================================================
+[[CODE]]
+package ArithmeticUtils;
+
+public class Multiplier {
+    public int multiply(int x, int y) {
+        return x * y;
+    }
+}
+[[METHOD]]
+public int multiply(int x, int y) {
+    return x * y;
+}
+[[SPECIFICATION]]
+result > x && result > y
+[[TEST]]
+
+====================================================================================================================================================
+[[CODE]]
+package DataStructures;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * @author Facundo Molina <fmolina@dc.exa.unrc.edu.ar>
+ */
+public class List implements Serializable {
+
+  //static final long serialVersionUID = 20200617L;
+
+  private int x;
+  private List next;
+
+  private static final int SENTINEL = Integer.MAX_VALUE;
+
+  private List(int x, List next) {
+    this.x = x;
+    this.next = next;
+  }
+
+  public List() {
+    this(SENTINEL, null);
+  }
+
+  public void insert(int data) {
+    if (data > this.x) {
+      next.insert(data);
+    } else {
+      next = new List(x, next);
+      x = data;
+    }
+    assert(true);
+  }
+
+  public boolean repOk() {
+    Set<List> visited = new HashSet<List>();
+    List curr = this;
+    while (curr.x != SENTINEL) {
+      // The list should acyclic
+      if (!visited.add(curr))
+        return false;
+      // The list should be sorted
+      List curr_next = curr.next;
+      if (curr.x > curr_next.x)
+        return false;
+
+      curr = curr_next;
+    }
+    return true;
+  }
+
+  @Override
+  public String toString() {
+    if (x == SENTINEL) {
+      return "null";
+    } else {
+      return x + ", " + next.toString();
+    } 
+  }
+
+}
+[[METHOD]]
+public void insert(int data) {
+    if (data > this.x) {
+      next.insert(data);
+    } else {
+      next = new List(x, next);
+      x = data;
+    }
+    assert(true);
+}
+[[SPECIFICATION]]
+FuzzedInvariant ((Integer_Variable_0 <= Integer_Variable_1) implies (Integer_Variable_1 < Integer_Variable_2)) holds for: <this.x, orig(this.x), orig(this.next.next.x)>
+[[TEST]]
+
+====================================================================================================================================================
+[[CODE]]
+package DataStructures;
+
+import java.util.Arrays;
+
+// StackAr class
+//
+// CONSTRUCTION: with or without a capacity; default is 10
+//
+// ******************PUBLIC OPERATIONS*********************
+// void push( x )         --> Insert x
+// void pop( )            --> Remove most recently inserted item
+// Object top( )          --> Return most recently inserted item
+// Object topAndPop( )    --> Return and remove most recently inserted item
+// boolean isEmpty( )     --> Return true if empty; else false
+// boolean isFull( )      --> Return true if full; else false
+// void makeEmpty( )      --> Remove all items
+// ******************ERRORS********************************
+// Overflow and Underflow thrown as needed
+
+/**
+ * Array-based implementation of the stack.
+ * @author Mark Allen Weiss
+ */
+public class StackAr
+{
+
+    /**
+     * Construct the stack.
+     * @param capacity the capacity.
+     */
+    public StackAr( int capacity )
+    {
+        theArray = new Object[ capacity ];
+        topOfStack = -1;
+    }
+
+    /**
+     * Test if the stack is logically empty.
+     * @return true if empty, false otherwise.
+     * @observer // annotation added by Jeremy
+     */
+    public boolean isEmpty( )
+    {
+        return topOfStack == -1;
+    }
+
+    /**
+     * Test if the stack is logically full.
+     * @return true if full, false otherwise.
+     * @observer // annotation added by Jeremy
+     */
+    public boolean isFull( )
+    {
+        return topOfStack == theArray.length - 1;
+    }
+
+
+    /**
+     * Make the stack logically empty.
+     */
+    public void makeEmpty( )
+    {
+        java.util.Arrays.fill(theArray, 0, topOfStack + 1, null);
+        topOfStack = -1; 
+    }
+
+    /**
+     * Get the most recently inserted item in the stack.
+     * Does not alter the stack.
+     * @return the most recently inserted item in the stack, or null, if empty.
+     * @observer // annotation added by Jeremy
+     */
+    public Object top( )
+    {
+        if( isEmpty( ) )
+            return null;
+        return theArray[ topOfStack ];
+    }
+
+    /**
+     * Remove the most recently inserted item from the stack.
+     * @exception Underflow if stack is already empty.
+     */
+    public void pop( ) throws Underflow
+    {
+        if( isEmpty( ) )
+            throw new Underflow( );
+        theArray[ topOfStack-- ] = null;
+    }
+
+    /**
+     * Insert a new item into the stack, if not already full.
+     * @param x the item to insert.
+     * @exception Overflow if stack is already full.
+     */
+    public void push(Object x) throws Overflow
+    {
+        if( isFull( ) )
+            throw new Overflow( );
+        theArray[++topOfStack] = x;
+    }
+
+    /**
+     * Return and remove most recently inserted item from the stack.
+     * @return most recently inserted item, or null, if stack is empty.
+     */
+    public Object topAndPop( )
+    {
+        if( isEmpty( ) )
+            return null;
+        Object result = top();
+        
+        theArray[topOfStack] = null;
+        topOfStack = topOfStack - 1;
+        assert (true);
+        return result;
+    }
+
+    private Object [ ] theArray;
+    private int        topOfStack;
+
+}
+[[METHOD]]
+public Object topAndPop( )
+{
+    if( isEmpty( ) )
+        return null;
+    Object result = top();
+        
+    theArray[topOfStack] = null;
+    topOfStack = topOfStack - 1;
+    assert (true);
+    return result;
+}
+[[SPECIFICATION]]
+daikon.Quant.size(this.theArray) == 4 || daikon.Quant.size(this.theArray) == 35 || daikon.Quant.size(this.theArray) == 97
+[[TEST]]
