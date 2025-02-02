@@ -28,7 +28,6 @@ Test:
 
 Specification: this.x != this.next.next.x + orig(this.next.next.x)
 Specification: data >= next.next.e || next.next.e = old(next.e)
-Specification: e != next.next.e + old(next.next.e)
 
 ====================================================================================================================================================
 Helper constructors and methods:

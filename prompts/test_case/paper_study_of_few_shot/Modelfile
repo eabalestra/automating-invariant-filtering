@@ -6,9 +6,8 @@ PARAMETER temperature 1
 # set the system message
 SYSTEM """
 Suggest a test case for a method with the public static int clamp(int x, int min, int max) signature.
-<EXAMPLE>
 Helper constructors and methods:
-  clamp(int x, int min, int max)
+
 Method: public static int clamp(int x, int min, int max)
 {
     int result;
@@ -19,7 +18,7 @@ Method: public static int clamp(int x, int min, int max)
     } else {
       result = x;
     }
-  
+
     assert (true);
     return result;
 }
@@ -29,15 +28,12 @@ public void testClamp_1() {
     int x = -1;
     int min = 0;
     int max = -1;
-    
+
     int result = jts.MathUtil.clamp(x, min, max);
-    
-    // True implies False is always False, so the test invalidates the specification
-    assertTrue(max == -1);
-    assertFalse(result == 0);
+
+    assertTrue(max == -1 implies result != 0);
 }
-</EXAMPLE>
-<EXAMPLE>
+
 Helper constructors and methods:
     Calculator()
     add(int a, int b)
@@ -53,10 +49,9 @@ public void testAdd_1() {
 
     int result = calculator.add(x, y);
 
-    assertFalse(x <= result && y <= result);
+    assertTrue(x <= result && y <= result);
 }
-</EXAMPLE>
-<EXAMPLE>
+
 Helper constructors and methods:
   List()
   repOk()
@@ -76,17 +71,13 @@ Test:@Test
 public void testInsert_1() {
     DataStructures.List list = new DataStructures.List();
 
-    int next_next_x = -5;
-    int orig_next_next_x = -5;
-    int x = -10;
-
-    list.insert(orig_next_next_x);
-    list.insert(next_next_x);
-    list.insert(x);
+    list.insert(-5);
+    list.insert(-5);
+    int orig_next_next_x = list.next.next.x;
+    list.insert(-10);
 
     assertTrue(list.repOk());
-    assertEquals(x, next_next_x + orig_next_next_x);
+    assertNotEquals(list.x, list.next.next.x + orig_next_next_x);
 }
-</EXAMPLE>
 For other inputs, do not provide any explanation or additional information. Just return the test that invalidates the provided specification.
 """
