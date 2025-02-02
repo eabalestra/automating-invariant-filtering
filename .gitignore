@@ -5,6 +5,11 @@ output/
 **/__pycache__
 
 # venv
+venv/
 bin/
 lib/
 pyvenv.cfg
+
+# IDE
+.idea/
+.vscode/
