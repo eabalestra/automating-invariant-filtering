@@ -9,7 +9,7 @@ output_dir = 'output/test/'
 llm_initialized = False
 conversation_context = 0
 
-def generate_test(class_name, info, spec):
+def generate_test(class_name, class_code, method_code, spec):
     """Search for MRS in the documentation."""
     #global llm_initialized
     #global conversation_context
@@ -22,15 +22,19 @@ def generate_test(class_name, info, spec):
 
     print("calling llm for spec: ", spec)
     prompt = ''
-    if info is not None:
-        prompt += 'Helper constructors and methods:\n' + info + '\n'
-    prompt += f'Specification: {spec}\n'
-    prompt += 'Test:'
+    if class_code is not None:
+        prompt += f'[[CODE]]\n'
+        prompt += class_code + '\n'
+    prompt += f'[[METHOD]]\n{method_code}\n'
+    prompt += f'[[SPECIFICATION]]\n{spec}\n'
+    prompt += '[[TEST]]'
     response = requests.post(ollama_url, json={"model": llm, "prompt": prompt, "stream": False})
     json_response = json.loads(response.text)
+    #print(prompt+"\n")
     #conversation_context = json_response["context"]
     #print(json_response)
     print(json_response["response"])
+
     # save response to a file in the output directory
     os.makedirs(os.path.join(output_dir, class_name), exist_ok=True)
     with open(os.path.join(output_dir, class_name, 'Test.java'), 'w') as f:
