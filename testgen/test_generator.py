@@ -30,7 +30,7 @@ def generate_test(class_name, class_code, method_code, spec):
     prompt += '[[TEST]]'
     response = requests.post(ollama_url, json={"model": llm, "prompt": prompt, "stream": False})
     json_response = json.loads(response.text)
-    #print(prompt+"\n")
+    print(prompt+"\n")
     #conversation_context = json_response["context"]
     #print(json_response)
     print(json_response["response"])
