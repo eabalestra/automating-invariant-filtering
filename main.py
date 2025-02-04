@@ -4,7 +4,7 @@ import re
 from testgen import test_generator
 
 def extract_method_code(class_code, method_name):
-    pattern = rf'public\s+[^\s]+\s+{method_name}\s*\(.*?\)\s*{{.*?}}'
+    pattern = rf'public\s+[^\s]+\s+{method_name}\s*\(.*?\)\s*{{(?:[^{{}}]*|{{(?:[^{{}}]*|{{[^{{}}]*}})*}})*}}'
     match = re.search(pattern, class_code, re.DOTALL)
     if match:
         return match.group(0)
