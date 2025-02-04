@@ -1,7 +1,10 @@
 import csv
 import sys
+import os
 import re
 from testgen import test_generator
+
+output_dir = 'output/test/'
 
 def extract_method_code(class_code, method_name):
     pattern = rf'public\s+[^\s]+\s+{method_name}\s*\(.*?\)\s*{{(?:[^{{}}]*|{{(?:[^{{}}]*|{{[^{{}}]*}})*}})*}}'
@@ -36,7 +39,15 @@ with open(csv_file, newline='') as csvfile:
     for row in reader:
         likely_valid_specs.append(row['spec'])
 
+test_suite_path = os.path.join(output_dir, class_name, 'TestSuite.java')
+with open(test_suite_path, "w") as file:
+    pass
+
 tries = 3
 for spec in likely_valid_specs:
     for i in range(tries):
-        test_generator.generate_test(class_name, class_code, method_code, spec)
+        test = test_generator.generate_test(class_name, class_code, method_code, spec)
+        # save response to a file in the output directory
+        os.makedirs(os.path.join(output_dir, class_name), exist_ok=True)
+        with open(test_suite_path, 'a') as f:
+            f.write(test+'\n\n')
