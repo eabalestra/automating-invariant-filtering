@@ -1,0 +1,2 @@
+spec
+daikon.Quant.size(this.theArray) == 4 || daikon.Quant.size(this.theArray) == 35 || daikon.Quant.size(this.theArray) == 97
