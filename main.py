@@ -39,6 +39,10 @@ with open(csv_file, newline='') as csvfile:
     for row in reader:
         likely_valid_specs.append(row['spec'])
 
+# create output dir for class cls
+os.makedirs(os.path.join(output_dir, class_name), exist_ok=True)
+
+# create the output file
 test_suite_path = os.path.join(output_dir, class_name, 'TestSuite.java')
 with open(test_suite_path, "w") as file:
     pass
