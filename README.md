@@ -15,9 +15,9 @@ ollama run test-generation-model (the model will keep running)
 
 ## Usage
 ```bash
-python main.py <class_file>.java <specs_file>.csv <method_under_test>  
+python search-counterexample.py <class_file>.java <specs_file>.csv <method_under_test>  
 ```
 ### Example
 ```bash
-python main.py examples/ArithmeticUtils/Multiplier.java examples/ArithmeticUtils/multiply_specs.csv multiply
+python search-counterexample.py examples/ArithmeticUtils/Multiplier.java examples/ArithmeticUtils/multiply_specs.csv multiply
 ```
