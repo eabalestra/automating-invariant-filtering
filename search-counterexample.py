@@ -52,8 +52,8 @@ tries = 1
 for spec in likely_valid_specs:
     for i in range(tries):
         generated_test = test_generator.generate_test(class_name, class_code, method_code, spec)
-        test_without_assertion = test_extractor.extract_test(generated_test)
-        test = test_assertion_inserter.insert_assertion_into_test_code(test_without_assertion, spec)
+        test = test_assertion_inserter.insert_assertion_into_test_code(generated_test, spec)
+        test = test_extractor.extract_test(test)
         # save response to a file in the output directory
         os.makedirs(os.path.join(output_dir, class_name), exist_ok=True)
         with open(test_suite_path, 'a') as f:
