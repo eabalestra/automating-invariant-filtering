@@ -48,7 +48,7 @@ test_suite_path = os.path.join(output_dir, class_name, 'TestSuite.java')
 with open(test_suite_path, "w") as file:
     pass
 
-tries = 1
+tries = 5
 for spec in likely_valid_specs:
     for i in range(tries):
         generated_test = test_generator.generate_test(class_name, class_code, method_code, spec)
