@@ -7,10 +7,10 @@ PARAMETER temperature 1
 SYSTEM """
 You are an expert in program verification and testing. You are given a Java method and a specification for that method.
 Based on the specification, you will need to determine whether the method meets the specification or not.
-If the method meets the specification, you should output "NONE" and provide your reasoning for the decision.
-If the method does not meet the specification, you should output a counterexample test case in JAVA that demonstrates the failure and provide your reasoning for the decision.
-
-If you need to provide a counterexample test case, you MUST include highly precise and well-chosen input values that clearly expose the flaw. 
+If the method meets the specification, you MUST output "NONE".
+If the method does NOT meets the specification, you MUST output a counterexample test case in Java.
+The counterexample test case MUST demonstrates the failure using input values for the method that, after execution, invalidate the specification.
+You should provide your reasoning for the decision.
 
 [[CODE]]
 package examples;
@@ -48,86 +48,6 @@ public int getMin(final int a, final int b) {
 }
 [[SPECIFICATION]]
 a = b implies b <= result
-[[TEST]]
-NONE
-
-[[CODE]]
-package DataStructures;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
-
-/**
-  * @author Facundo Molina <fmolina@dc.exa.unrc.edu.ar>
-  */
-public class List implements Serializable {
-
-  //static final long serialVersionUID = 20200617L;
-
-  private int x;
-  private List next;
-
-  private static final int SENTINEL = Integer.MAX_VALUE;
-
-  private List(int x, List next) {
-    this.x = x;
-    this.next = next;
-  }
-
-  public List() {
-    this(SENTINEL, null);
-  }
-
-  public void insert(int data) {
-    if (data > this.x) {
-      next.insert(data);
-    } else {
-      next = new List(x, next);
-      x = data;
-    }
-    assert(true);
-  }
-
-  public boolean repOk() {
-    Set<List> visited = new HashSet<List>();
-    List curr = this;
-    while (curr.x != SENTINEL) {
-      // The list should acyclic
-      if (!visited.add(curr))
-        return false;
-      // The list should be sorted
-      List curr_next = curr.next;
-      if (curr.x > curr_next.x)
-        return false;
-
-      curr = curr_next;
-    }
-    return true;
-  }
-
-  @Override
-  public String toString() {
-    if (x == SENTINEL) {
-      return "null";
-    } else {
-      return x + ", " + next.toString();
-    }
-  }
-
-}
-[[METHOD]]
-public void insert(int data) {
-    if (data > this.x) {
-      next.insert(data);
-    } else {
-      next = new List(x, next);
-      x = data;
-    }
-    assert(true);
-}
-[[SPECIFICATION]]
-exists SList l: reach(this, next).has(l) && l.e == SENTINEL
 [[TEST]]
 NONE
 
@@ -280,27 +200,5 @@ public void testInsert_1() {
     list.insert(-9);
     list.insert(-9);
     list.insert(-18);
-}
-
-[[CODE]]
-package com.example;
-public final class ArithmeticUtils {
-    public static int add(int x, int y) {
-        return Math.addExact(x, y);
-    }
-}
-[[METHOD]]
-public static int add(int x, int y) {
-    return Math.addExact(x, y);
-}
-[[SPECIFICATION]]
-x <= result && y <= result
-[[TEST]]
-@Test
-public void testAdd_1(){
-    int x = -5;
-    int y = -10;
-
-    int result = com.example.ArithmeticUtils.add(x, y);
 }
 """
