@@ -18,13 +18,76 @@ def insert_assertion_into_test_code(test_code, specification):
     return test_code
 
 def generate_assertion_from_specification(specification):
-    if 'implies' in specification or '==>' in specification:
-        parts = re.split(r'\s*implies\s*|\s*==>\s*', specification)
-        specification = f'!({parts[0]}) || ({parts[1]})'
-    elif 'iff' in specification or '<=>' in specification:
-        parts = re.split(r'\s*iff\s*|\s*<=>\s*', specification)
-        specification = f'({parts[0]}) == ({parts[1]})'
-    elif 'xor' in specification:
-        parts = re.split(r'\s*xor\s*', specification)
-        specification = f'(!({parts[0]} && {parts[1]}) && ({parts[0]} || {parts[1]}))'
+    specification = process_specification(specification)
     return f'\n\n    assertTrue({specification});'
+
+def process_specification(specification):
+    spec = strip_outer_parentheses(specification.strip())
+    
+    parts = split_outside_parentheses(spec, r'\s*xor\s*', max_splits=1)
+    if len(parts) > 1:
+        first = process_specification(parts[0])
+        second = process_specification(parts[1])
+        return f'(!({first} && {second}) && ({first} || {second}))'
+    parts = split_outside_parentheses(spec, r'\s*(implies|==>)\s*', max_splits=1)
+    if len(parts) > 1:
+        left_spec = process_specification(parts[0])
+        right_spec = process_specification(parts[1])
+        return f'!({left_spec}) || ({right_spec})'
+    parts = split_outside_parentheses(spec, r'\s*(iff|<=>)\s*', max_splits=1)
+    if len(parts) > 1:
+        left_spec = process_specification(parts[0])
+        right_spec = process_specification(parts[1])
+        return f'({left_spec}) == ({right_spec})'
+    return spec
+
+def strip_outer_parentheses(expr):
+    expr = expr.strip()
+    if expr.startswith('(') and expr.endswith(')'):
+        depth = 0
+        for i, ch in enumerate(expr):
+            if ch == '(':
+                depth += 1
+            elif ch == ')':
+                depth -= 1
+            if depth == 0 and i < len(expr) - 1:
+                return expr
+        return expr[1:-1].strip()
+    return expr
+
+def split_outside_parentheses(spec, op_regex, max_splits=1):
+    parts = []
+    current = []
+    depth = 0
+    splits = 0
+    i = 0
+    while i < len(spec):
+        char = spec[i]
+        if char == '(':
+            depth += 1
+            current.append(char)
+            i += 1
+        elif char == ')':
+            depth -= 1
+            current.append(char)
+            i += 1
+        else:
+            if depth == 0:
+                m = re.match(op_regex, spec[i:], re.IGNORECASE)
+                if m:
+                    parts.append(''.join(current).strip())
+                    current = []
+                    i += m.end()
+                    splits += 1
+                    if splits == max_splits:
+                        current.append(spec[i:])
+                        break
+                    continue
+                else:
+                    current.append(char)
+                    i += 1
+            else:
+                current.append(char)
+                i += 1
+    parts.append(''.join(current).strip())
+    return parts
