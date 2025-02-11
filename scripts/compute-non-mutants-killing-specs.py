@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+from re import search
 
 specs_file = sys.argv[1]
 specs_and_mutants_file = sys.argv[2]
@@ -7,9 +8,16 @@ specs_and_mutants_file = sys.argv[2]
 print(specs_file)
 print(specs_and_mutants_file)
 
+
+def is_inv_line(line):
+    return not (search(":::OBJECT", line) or search("==============", line) or search(":::EXIT", line) or search(":::ENTER", line))
+
 specs = []
 with open(specs_file, "r") as file:
-    specs = file.read().splitlines()
+    lines = file.read().splitlines()
+    for line in lines:
+        if is_inv_line(line):
+            specs.append(line)
     specs = set(specs)
     #specs.sort()
 
@@ -37,5 +45,15 @@ non_mutant_killing_specs = list(set(specs) - set(mutant_killing_specs))
 print(f"Total non-mutant-killing specs: {len(non_mutant_killing_specs)}")
 
 w = set(mutant_killing_specs) - specs
-print(f"specs in mutant-killing specs that do not belong to the set of total specs: {w}")
-print("TODO: Where this specs come from?")
+if w != set():
+    print(f"specs in mutant-killing specs that do not belong to the set of total specs: {w}")
+    print("TODO: Where this specs come from?")
+
+subject_name = specs_file.split("/")[-1].split(".")[0]
+
+output_file = subject_name + ".non-mutant-killing-assertions"
+print(f"Writing specs in: {output_file}")
+
+with open(output_file, "w") as file:
+    for spec in non_mutant_killing_specs:
+        file.write(spec + "\n")
