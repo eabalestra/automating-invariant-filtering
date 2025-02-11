@@ -3,7 +3,7 @@ import sys
 import os
 import re
 from testgen import test_generator
-from scripts import test_extractor, test_assertion_inserter
+from scripts import test_extractor, test_assertion_inserter, spec_processor
 
 output_dir = 'output/test/'
 
@@ -48,13 +48,13 @@ test_suite_path = os.path.join(output_dir, class_name, 'TestSuite.java')
 with open(test_suite_path, "w") as file:
     pass
 
-tries = 5
+tries = 1
 for spec in likely_valid_specs:
     for i in range(tries):
-        generated_test = test_generator.generate_test(class_name, class_code, method_code, spec)
-        test = test_assertion_inserter.insert_assertion_into_test_code(generated_test, spec)
-        test = test_extractor.extract_test(test)
+        processed_spec = spec_processor.replace_spec_variables(spec)
+        generated_test = test_generator.generate_test(class_name, class_code, method_code, processed_spec)
+        test_with_assertion = test_assertion_inserter.insert_assertion_into_test_code(generated_test, processed_spec)
+        extracted_test = test_extractor.extract_test(test_with_assertion)
         # save response to a file in the output directory
-        os.makedirs(os.path.join(output_dir, class_name), exist_ok=True)
         with open(test_suite_path, 'a') as f:
-            f.write(test+'\n\n')
+            f.write(extracted_test + '\n\n')
