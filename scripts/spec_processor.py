@@ -1,41 +1,5 @@
 import re
 
-def replace_spec_variables(specification):
-    processed_spec = specification.replace("FuzzedInvariant", "").strip()
-    if "holds for:" in processed_spec:
-        processed_spec, vars_part = processed_spec.split("holds for:")
-        processed_spec = processed_spec.strip()
-        variable_names = vars_part.strip().strip("<>").split(", ")
-        for var in variable_names:
-            # if var.startswith("orig("):
-            #     var = var.replace("orig(", "").replace(")", "")
-            match = re.search(r'\w+_Variable_\d+', processed_spec)
-            if match:
-                processed_spec = processed_spec.replace(match.group(0), var)
-    processed_spec = processed_spec.replace("\\", "")
-    return strip_outer_parentheses(processed_spec).strip()
-
-def normalize_spec(specification):
-    spec = strip_outer_parentheses(specification.strip())
-
-    parts = split_outside_parentheses(spec, r'\s*xor\s*', max_splits=1)
-    if len(parts) > 1:
-        first = normalize_spec(parts[0])
-        second = normalize_spec(parts[1])
-        return f'(!({first} && {second}) && ({first} || {second}))'
-    parts = split_outside_parentheses(spec, r'\s*(implies|==>)\s*', max_splits=1)
-    if len(parts) > 1:
-        first = normalize_spec(parts[0])
-        second = normalize_spec(parts[1])
-        return f'!({first}) || ({second})'
-    parts = split_outside_parentheses(spec, r'\s*(iff|<=>)\s*', max_splits=1)
-    if len(parts) > 1:
-        first = normalize_spec(parts[0])
-        second = normalize_spec(parts[1])
-        return f'({first}) == ({second})'
-    return spec
-
-
 def strip_outer_parentheses(expr):
     expr = expr.strip()
     if expr.startswith('(') and expr.endswith(')'):
@@ -49,7 +13,6 @@ def strip_outer_parentheses(expr):
                 return expr
         return expr[1:-1].strip()
     return expr
-
 
 def split_outside_parentheses(spec, op_regex, max_splits=1):
     parts = []
@@ -87,3 +50,43 @@ def split_outside_parentheses(spec, op_regex, max_splits=1):
                 i += 1
     parts.append(''.join(current).strip())
     return parts
+
+def replace_spec_variables(specification):
+    processed_spec = specification.replace("FuzzedInvariant", "").strip()
+    if "holds for:" in processed_spec:
+        processed_spec, vars_part = processed_spec.split("holds for:")
+        processed_spec = processed_spec.strip()
+        variable_names = vars_part.strip().strip("<>").split(",")
+
+        quantified_pattern = re.compile(r'\b(?:some|all|no)\s+n\b', re.IGNORECASE)
+        if quantified_pattern.search(processed_spec):
+            variable_names = variable_names[1:]
+
+        for var in variable_names:
+            # if var.startswith("orig("):
+            #     var = var.replace("orig(", "").replace(")", "")
+            match = re.search(r'\w+_Variable_\d+', processed_spec)
+            if match:
+                processed_spec = processed_spec.replace(match.group(0), var.strip())
+    processed_spec = processed_spec.replace("\\", "")
+    return strip_outer_parentheses(processed_spec).strip()
+
+
+def normalize_spec(specification):
+    spec = strip_outer_parentheses(specification.strip())
+    parts = split_outside_parentheses(spec, r'\s*xor\s*', max_splits=1)
+    if len(parts) > 1:
+        first = normalize_spec(parts[0])
+        second = normalize_spec(parts[1])
+        return f'(!({first} && {second}) && ({first} || {second}))'
+    parts = split_outside_parentheses(spec, r'\s*(implies|==>)\s*', max_splits=1)
+    if len(parts) > 1:
+        first = normalize_spec(parts[0])
+        second = normalize_spec(parts[1])
+        return f'!({first}) || ({second})'
+    parts = split_outside_parentheses(spec, r'\s*(iff|<=>)\s*', max_splits=1)
+    if len(parts) > 1:
+        first = normalize_spec(parts[0])
+        second = normalize_spec(parts[1])
+        return f'({first}) == ({second})'
+    return spec
