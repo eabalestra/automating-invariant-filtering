@@ -71,8 +71,8 @@ def replace_spec_variables(specification):
     processed_spec = processed_spec.replace("\\", "")
     return strip_outer_parentheses(processed_spec).strip()
 
-
 def normalize_spec(specification):
+    specification = specification.replace(" or ", " || ").replace("and", "&&").replace("not", "!").strip()
     spec = strip_outer_parentheses(specification.strip())
     parts = split_outside_parentheses(spec, r'\s*xor\s*', max_splits=1)
     if len(parts) > 1:
