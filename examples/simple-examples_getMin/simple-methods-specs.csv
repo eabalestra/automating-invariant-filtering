@@ -1,12 +1,2 @@
 spec
-a >= result
-result <= b
-a < result ==> result <= 1
-a >= b ==> b == result
-a >= b || b != result
-a <= b || b <= result
-a <= b || b >= result
-a >= b <==> b == result
-a == b ==> b <= result
-a <= b <==> a == result
-a > result || b > result
+"FuzzedInvariant ( (Integer_Variable_0 >= Integer_Variable_1) iff (Integer_Variable_1 = Integer_Variable_2) ) holds for: <orig(a) , orig(b) , return>"

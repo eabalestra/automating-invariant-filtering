@@ -1,3 +1,0 @@
-spec
-result >= x && result >= y
-result > x && result > y

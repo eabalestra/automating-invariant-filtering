@@ -1,6 +1,4 @@
 spec
-"this.x <= orig(this.x) implies orig(this.x) < orig(this.next.next.x)"
-"this.x <= orig(this.x) implies orig(this.x) < orig(this.next.next.x)"
-"this.x != this.next.next.x + orig(this.next.next.x)"
-"data >= next.next.e || next.next.e = old(next.e)"
-"exists SList l: reach(this, next).has(l) && l.e == data"
+"FuzzedInvariant ( all n : List.^(next) : n.x >= Integer_Variable_0 ) holds for: <orig(this), this.next.x>"
+"FuzzedInvariant ( some n : List.^(next) : n.x >= -1 ) holds for: orig(this)"
+"FuzzedInvariant ( (Integer_Variable_0 <= Integer_Variable_1) implies (Integer_Variable_1 < Integer_Variable_2) ) holds for: <this.x , orig(this.x) , orig(this.next.next.x)>"
