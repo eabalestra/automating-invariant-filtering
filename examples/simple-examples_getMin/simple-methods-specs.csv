@@ -1,2 +1,0 @@
-spec
-"FuzzedInvariant ( (Integer_Variable_0 >= Integer_Variable_1) iff (Integer_Variable_1 = Integer_Variable_2) ) holds for: <orig(a) , orig(b) , return>"

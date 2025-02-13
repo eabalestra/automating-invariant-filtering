@@ -1,2 +1,0 @@
-spec
-"FuzzedInvariant ( (Integer_Variable_0 = 0) iff (Integer_Variable_1 <= 0) ) holds for: <orig(x), return>"
