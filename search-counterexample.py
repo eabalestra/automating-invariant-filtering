@@ -1,9 +1,8 @@
-import csv
 import sys
 import os
 import re
 from testgen import test_generator
-from scripts import assertion_remover, test_extractor, spec_processor
+from scripts import assertion_remover, test_extractor, spec_processor, invariant_spec_reader
 
 OUTPUT_DIR = 'output/test/'
 
@@ -25,7 +24,7 @@ def extract_class_name(class_code):
 
 # Load file and arguments
 class_file_path=sys.argv[1]
-specs_csv_file=sys.argv[2] # Csv file containing specifications.
+specs_file_path=sys.argv[2] # Csv file containing specifications.
 method_name=sys.argv[3]
 
 # Load class code and method code
@@ -33,12 +32,7 @@ class_code = open(class_file_path, 'r').read()
 method_code = extract_method_code(class_code, method_name)
 class_name = extract_class_name(class_code)
 
-# read specs from a csv file
-likely_valid_specs = []
-with open(specs_csv_file, newline='') as csvfile:
-    reader = csv.DictReader(csvfile)
-    for row in reader:
-        likely_valid_specs.append(row['spec'])
+likely_valid_specs = invariant_spec_reader.read_and_filter_specs(specs_file_path)
 
 # create output dir for class cls
 os.makedirs(os.path.join(OUTPUT_DIR, class_name), exist_ok=True)
