@@ -17,6 +17,7 @@ def extract_test(response_test):
             extracted_test.append(line)
             brace_count += line.count('{') - line.count('}')
             if brace_count == 0 and line.strip().endswith('}'):
+                extracted_test.append("\n")
                 test_case_started = False
         else:
             comments.append(f"// {line}")
