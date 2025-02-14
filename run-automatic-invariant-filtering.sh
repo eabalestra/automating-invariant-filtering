@@ -15,6 +15,6 @@ echo "> Generate tests using LLM"
 python search-counterexample.py "$SUBJECT_CLASS_PATH" "$SPECS_FILE_PATH" "$METHOD_NAME"
 
 # append the generated tests by LLM to the existing test suite
-GENERATED_TEST_FILE="output/test/$(basename "$SUBJECT_CLASS_PATH" .java)/$(basename "$SUBJECT_CLASS_PATH" .java)_${METHOD_NAME}-llm-tests.java"
+GENERATED_TEST_FILE="output/test/$(basename "$SUBJECT_CLASS_PATH" .java)/$(basename "$SUBJECT_CLASS_PATH" .java)_${METHOD_NAME}LlmTest.java"
 echo "> Append the generated tests to the existing test suite"
-python scripts/append_test_suites.py "$COPY_EXISTING_TEST_FILE_PATH" "$GENERATED_TEST_FILE"
+python scripts/test_appender.py "$COPY_EXISTING_TEST_FILE_PATH" "$GENERATED_TEST_FILE"
