@@ -2,7 +2,7 @@ import sys
 import os
 import re
 from testgen import test_generator
-from scripts import assertion_remover, spec_processor, invariant_spec_reader, test_extractor
+from scripts import assertion_remover, spec_processor, spec_reader, test_extractor
 
 OUTPUT_DIR = 'output/test/'
 
@@ -32,13 +32,13 @@ class_code = open(class_file_path, 'r').read()
 method_code = extract_method_code(class_code, method_name)
 class_name = extract_class_name(class_code)
 
-likely_valid_specs = invariant_spec_reader.read_and_filter_specs(specs_file_path)
+likely_valid_specs = spec_reader.read_and_filter_specs(specs_file_path)
 
 # create output dir for class cls
 os.makedirs(os.path.join(OUTPUT_DIR, class_name), exist_ok=True)
 
 # create the output file
-test_suite_path = os.path.join(OUTPUT_DIR, class_name, f"{class_name}_{method_name}-llm-tests.java")
+test_suite_path = os.path.join(OUTPUT_DIR, class_name, f"{class_name}_{method_name}LlmTest.java")
 with open(test_suite_path, "w") as file:
     pass
 
