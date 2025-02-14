@@ -2,7 +2,7 @@ import sys
 import os
 import re
 from testgen import test_generator
-from scripts import assertion_remover, test_extractor, spec_processor, invariant_spec_reader
+from scripts import assertion_remover, spec_processor, invariant_spec_reader, test_extractor
 
 OUTPUT_DIR = 'output/test/'
 
@@ -49,7 +49,7 @@ for spec in likely_valid_specs:
         processed_spec = spec_processor.replace_spec_variables(spec)
         generated_test = test_generator.generate_test(class_name, class_code, method_code, processed_spec)
         assertion_free_test = assertion_remover.remove_existing_assertions(generated_test)
-        final_test = test_extractor.extract_test(assertion_free_test)
+        final_test = test_extractor.extract_test_with_comments_from_string(assertion_free_test)
         # save response to a file in the output directory
         with open(test_suite_path, 'a') as f:
             f.write(final_test + '\n\n')
