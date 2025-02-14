@@ -22,7 +22,7 @@ def parse_comments_and_test(lines: List[str]) -> Tuple[List[str], List[str]]:
         if test_start_pattern.match(line):
             test_case_started = True
         if test_case_started:
-            extracted_test.append("    " + line)
+            extracted_test.append(line)
             brace_count += line.count('{') - line.count('}')
             if brace_count == 0 and line.strip().endswith('}'):
                 extracted_test.append("\n")
