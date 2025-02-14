@@ -1,5 +1,4 @@
 from re import search
-import sys
 
 def is_inv_line(line):
     return not (search(":::OBJECT", line) or search("==============", line) or search(":::EXIT", line) or search(":::ENTER", line))
