@@ -2,7 +2,7 @@ import sys
 import re
 from typing import List
 
-from scripts.test_extractor import extract_tests_from_file
+from test_extractor import extract_tests_from_file
 
 def append_test_method_to_file(destination_file: str, test_method: str) -> None:
     try:
