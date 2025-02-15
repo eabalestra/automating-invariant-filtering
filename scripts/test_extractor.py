@@ -1,15 +1,18 @@
 import re
 from typing import List, Tuple
 
+
 def extract_test_with_comments_from_string(text: str) -> str:
     lines = text.split('\n')
     comments, extracted_test = parse_comments_and_test(lines)
     return '\n'.join(comments + extracted_test)
 
+
 def extract_tests_from_file(source_test_file: str) -> List[str]:
     with open(source_test_file, "r", encoding='utf-8') as sf:
         content = sf.read()
     return parse_test_from_string(content)
+
 
 def parse_comments_and_test(lines: List[str]) -> Tuple[List[str], List[str]]:
     test_case_started = False
@@ -30,6 +33,7 @@ def parse_comments_and_test(lines: List[str]) -> Tuple[List[str], List[str]]:
         else:
             comments.append(f"// {line}")
     return comments, extracted_test
+
 
 def parse_test_from_string(content: str) -> List[str]:
     brace_count = 0
