@@ -1,20 +1,23 @@
 import re
+from typing import List
 
-def strip_outer_parentheses(expr):
-    expr = expr.strip()
-    if expr.startswith('(') and expr.endswith(')'):
+
+def strip_outer_parentheses(spec: str) -> str:
+    spec = spec.strip()
+    if spec.startswith('(') and spec.endswith(')'):
         depth = 0
-        for i, ch in enumerate(expr):
+        for i, ch in enumerate(spec):
             if ch == '(':
                 depth += 1
             elif ch == ')':
                 depth -= 1
-            if depth == 0 and i < len(expr) - 1:
-                return expr
-        return expr[1:-1].strip()
-    return expr
+            if depth == 0 and i < len(spec) - 1:
+                return spec
+        return spec[1:-1].strip()
+    return spec
 
-def split_outside_parentheses(spec, op_regex, max_splits=1):
+
+def split_by_operator_outside_parens(spec: str, op_regex: re.Pattern, max_splits: int = 1) -> List[str]:
     parts = []
     current = []
     depth = 0
@@ -32,11 +35,11 @@ def split_outside_parentheses(spec, op_regex, max_splits=1):
             i += 1
         else:
             if depth == 0:
-                m = re.match(op_regex, spec[i:], re.IGNORECASE)
-                if m:
+                regex_match = re.match(op_regex, spec[i:], re.IGNORECASE)
+                if regex_match:
                     parts.append(''.join(current).strip())
                     current = []
-                    i += m.end()
+                    i += regex_match.end()
                     splits += 1
                     if splits == max_splits:
                         current.append(spec[i:])
@@ -51,14 +54,16 @@ def split_outside_parentheses(spec, op_regex, max_splits=1):
     parts.append(''.join(current).strip())
     return parts
 
-def replace_spec_variables(specification):
+
+def update_specification_variables(specification: str) -> str:
     processed_spec = specification.replace("FuzzedInvariant", "").strip()
     if "holds for:" in processed_spec:
         processed_spec, vars_part = processed_spec.split("holds for:")
         processed_spec = processed_spec.strip()
         variable_names = vars_part.strip().strip("<>").split(",")
 
-        quantified_pattern = re.compile(r'\b(?:some|all|no)\s+n\b', re.IGNORECASE)
+        quantified_pattern = re.compile(
+            r'\b(?:some|all|no)\s+n\b', re.IGNORECASE)
         if quantified_pattern.search(processed_spec):
             variable_names = variable_names[1:]
 
@@ -67,26 +72,40 @@ def replace_spec_variables(specification):
             #     var = var.replace("orig(", "").replace(")", "")
             match = re.search(r'\w+_Variable_\d+', processed_spec)
             if match:
-                processed_spec = processed_spec.replace(match.group(0), var.strip())
+                processed_spec = processed_spec.replace(
+                    match.group(0), var.strip())
     processed_spec = processed_spec.replace("\\", "")
     return strip_outer_parentheses(processed_spec).strip()
 
-def normalize_spec(specification):
-    specification = specification.replace(" or ", " || ").replace("and", "&&").replace("not", "!").strip()
+
+def transform_specification(specification: str) -> str:
+    specification = specification.replace(" or ", " || ").replace(
+        "and", "&&").replace("not", "!").strip()
+
     spec = strip_outer_parentheses(specification.strip())
-    parts = split_outside_parentheses(spec, r'\s*xor\s*', max_splits=1)
+
+    xor_regex = r'\s*xor\s*'
+    if_regex = r'\s*(implies|==>)\s*'
+    iff_regex = r'\s*(iff|<=>)\s*'
+
+    parts = split_by_operator_outside_parens(spec, xor_regex, max_splits=1)
     if len(parts) > 1:
-        first = normalize_spec(parts[0])
-        second = normalize_spec(parts[1])
+        first = transform_specification(parts[0])
+        second = transform_specification(parts[1])
         return f'(!({first} && {second}) && ({first} || {second}))'
-    parts = split_outside_parentheses(spec, r'\s*(implies|==>)\s*', max_splits=1)
+
+    parts = split_by_operator_outside_parens(
+        spec, if_regex, max_splits=1)
     if len(parts) > 1:
-        first = normalize_spec(parts[0])
-        second = normalize_spec(parts[1])
+        first = transform_specification(parts[0])
+        second = transform_specification(parts[1])
         return f'!({first}) || ({second})'
-    parts = split_outside_parentheses(spec, r'\s*(iff|<=>)\s*', max_splits=1)
+
+    parts = split_by_operator_outside_parens(
+        spec, iff_regex, max_splits=1)
     if len(parts) > 1:
-        first = normalize_spec(parts[0])
-        second = normalize_spec(parts[1])
+        first = transform_specification(parts[0])
+        second = transform_specification(parts[1])
         return f'({first}) == ({second})'
+
     return spec
