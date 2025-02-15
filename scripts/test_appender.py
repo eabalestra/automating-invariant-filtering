@@ -25,7 +25,6 @@ def replace_method_calling(test_methods: List[str], subject_package: str) -> Lis
 
     new_tests = []
     for test in test_methods:
-        # Verificamos si existe al menos una ocurrencia sin calificar.
         unqualified_constructor = re.search(constructor_pattern, test)
         unqualified_static = re.search(static_call_pattern, test)
         unqualified_type = re.search(type_declaration_pattern, test)
