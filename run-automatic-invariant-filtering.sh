@@ -17,4 +17,4 @@ python search-counterexample.py "$SUBJECT_CLASS_PATH" "$SPECS_FILE_PATH" "$METHO
 # append the generated tests by LLM to the existing test suite
 GENERATED_TEST_FILE="output/test/$(basename "$SUBJECT_CLASS_PATH" .java)/$(basename "$SUBJECT_CLASS_PATH" .java)_${METHOD_NAME}LlmTest.java"
 echo "> Append the generated tests to the existing test suite"
-python scripts/test_appender.py "$COPY_EXISTING_TEST_FILE_PATH" "$GENERATED_TEST_FILE"
+python scripts/test_appender.py "$COPY_EXISTING_TEST_FILE_PATH" "$GENERATED_TEST_FILE" "$SUBJECT_CLASS_PATH"
