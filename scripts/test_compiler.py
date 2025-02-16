@@ -25,7 +25,7 @@ def check_if_test_compiles(test_suite_path: str, subject_path: str, test_method:
             f.write(test_template)
         append_test_method_to_file(new_test_path, test_method)
         result = subprocess.run(
-            ['javac', '-cp', 'lib/junit-4.12.jar:.', subject_path, new_test_path],
+            ['javac', '-cp', 'libs/junit-4.12.jar:.', subject_path, new_test_path],
             check=True,
             capture_output=True,
             text=True
