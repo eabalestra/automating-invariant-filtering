@@ -13,3 +13,6 @@ pyvenv.cfg
 # IDE
 .idea/
 .vscode/
+
+# java
+**/*.class
