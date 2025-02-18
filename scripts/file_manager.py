@@ -1,4 +1,4 @@
-def read_file(file_path: str, mode: str) -> str:
+def read_file(file_path: str, mode: str = 'r') -> str:
     with open(file_path, mode, encoding='utf-8') as f:
         return f.read()
 
