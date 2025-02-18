@@ -7,6 +7,8 @@ METHOD_NAME=$3
 EXISTING_TEST_FILE_PATH=$4
 EXISTING_TEST_DRIVER_PATH=$5
 
+printf "==> Running automatic invariant filtering\n"
+
 # copy the existing test suite
 cp "$EXISTING_TEST_FILE_PATH" "${EXISTING_TEST_FILE_PATH%.java}Augmented.java"
 COPY_EXISTING_TEST_FILE_PATH="${EXISTING_TEST_FILE_PATH%.java}Augmented.java"
