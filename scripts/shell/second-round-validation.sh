@@ -24,6 +24,7 @@ driver_fqname="testers.${driver_unqualified}"
 lib_dir="lib"
 gassert_dir="../tools/GAssert"
 subject_sources="${gassert_dir}/subjects/${gassert_subject}"
+automatic_if_dir="automatic-invariant-filtering/output/test/${gassert_subject}"
 
 echo "Subject: $gassert_subject"
 echo "GAssert dir: $gassert_dir"
@@ -63,5 +64,7 @@ java -Xmx8g -cp "lib/*:${subject_jar}" daikon.tools.InvariantChecker \
     "$output_dir/${driver_unqualified}.dtrace.gz" \
     >>"$output_dir/${class_name}_${method_name}.log"
 
-echo "Done"
-echo "Output in $output_dir"
+echo "> Filtering specifications"
+filtered_invs_file_dir=${automatic_if_dir}/${class_name}_${method_name}-filtered-specs.csv
+mv 'invs.csv' $filtered_invs_file_dir
+python3 automatic-invariant-filtering/scripts/remove_not_interest_specs.py $filtered_invs_file_dir $fqname.$method_name $method_name
