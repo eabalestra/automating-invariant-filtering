@@ -1,6 +1,5 @@
 import sys
 import os
-import re
 from testgen import test_generator
 from scripts import assertion_remover, spec_processor, spec_reader, test_extractor, utils
 
