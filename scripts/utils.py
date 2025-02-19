@@ -25,24 +25,32 @@ def extract_package_path(file_path: str) -> str:
 
 
 def extract_method_code(class_code: str, method_name: str) -> str:
-    method_started = False
-    method = []
-    brace_count = 0
+    pattern = r'^\s*(?:(?:public)|(?:private)|(?:static)|(?:protected)\s+)*.*\s+' + \
+        method_name + r'\s*\(.*\)\s*(?:throws\s+[\w\s,]+)?\s*{'
 
-    for line in class_code.split('\n'):
-        if method_name in line:
-            method_started = True
-        if method_started:
-            method.append(line)
-            brace_count += line.count('{') - line.count('}')
-            if brace_count == 0 and line.strip().endswith('}'):
-                method_started = False
-    return '\n'.join(method)
+    match = re.search(pattern, class_code, re.MULTILINE)
+    if not match:
+        return ""
+
+    start_index = match.start()
+    brace_count = 0
+    end_index = start_index
+
+    for i in range(start_index, len(class_code)):
+        if class_code[i] == '{':
+            brace_count += 1
+        elif class_code[i] == '}':
+            brace_count -= 1
+            if brace_count == 0:
+                end_index = i + 1
+                break
+
+    return class_code[start_index:end_index]
 
 
 def extract_class_name(class_code):
     pattern = r'public\s+class\s+(\w+)'
-    match = re.search(pattern, class_code) 
+    match = re.search(pattern, class_code)
     if not match:
         raise ValueError("Class name not found in the provided class code.")
     return match.group(1)
