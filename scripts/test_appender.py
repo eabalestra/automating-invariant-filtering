@@ -75,6 +75,17 @@ def add_tests_to_driver_file(file_path: str, test_methods: list) -> None:
     write_file(file_path, new_content, 'w')
 
 
+def add_throws_declaration(test_methods: List[str]) -> List[str]:
+    pattern = r'(public void \w+\(\))\s*(?:throws\s+[^\\{]*)?\s*\{'
+    replacement = r'\1 throws Throwable {'
+
+    updated_tests = []
+    for test in test_methods:
+        test = re.sub(pattern, replacement, test)
+        updated_tests.append(test)
+    return updated_tests
+
+
 def process_tests(destination_test_file: str, test_driver_file: str, source_test_file: str, subject_file: str) -> None:
     tests = extract_tests_from_file(source_test_file)
     subject_package = extract_package_path(subject_file)
@@ -94,6 +105,7 @@ def process_tests(destination_test_file: str, test_driver_file: str, source_test
     renamed_tests = rename_test_methods(tests, 'llmTest')
     updated_tests = replace_method_calling(
         renamed_tests, subject_package, subject)
+    updated_tests = add_throws_declaration(updated_tests)
 
     compiled_test_names = []
     for test_method in updated_tests:
@@ -112,7 +124,7 @@ def process_tests(destination_test_file: str, test_driver_file: str, source_test
 
 def main() -> None:
     if len(sys.argv) < 4:
-        print("Usage: python script.py <destination_test_file> <destination_test_driver_file> <source_test_file> <subject_file>")
+        print("Usage: python3 test_appender.py <destination_suite>.java <destination_driver>.java <source_suite>.java <subject_class>.java")
         sys.exit(1)
 
     destination_test_file, test_driver_file, source_test_file, subject_file = sys.argv[1:5]
