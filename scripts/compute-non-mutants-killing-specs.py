@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 from re import search
+#from spec_processor import *
 
 specs_file = sys.argv[1]
 specs_and_mutants_file = sys.argv[2]
@@ -56,4 +57,6 @@ print(f"Writing specs in: {output_file}")
 
 with open(output_file, "w") as file:
     for spec in non_mutant_killing_specs:
+        #spec = replace_spec_variables(spec)
+        #spec = strip_outer_parentheses(spec)
         file.write(spec + "\n")
