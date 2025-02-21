@@ -3,7 +3,8 @@ import os
 import subprocess
 from typing import List
 
-from utils import append_test_method_to_file, extract_package_path
+from utils import append_test_method_to_file
+from code_extractor import extract_package_path
 
 
 def get_test_template(package: str, subject_package: str) -> str:
@@ -37,13 +38,13 @@ def cleanup_files(*file_paths: str) -> None:
             os.remove(file_path)
 
 
-def check_if_test_compiles(test_suite_path: str, subject_path: str, test_method: str) -> bool:
-    test_suite_package = extract_package_path(test_suite_path)
-    test_suite_directory = os.path.dirname(test_suite_path)
+def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) -> bool:
+    test_suite_package = extract_package_path(test_suite)
+    test_suite_directory = os.path.dirname(test_suite)
 
-    subject_dir = os.path.dirname(subject_path)
+    subject_dir = os.path.dirname(subject_class)
     subject_files = glob.glob(os.path.join(subject_dir, '*.java'))
-    subject_package = extract_package_path(subject_path)
+    subject_package = extract_package_path(subject_class)
 
     test_template = get_test_template(test_suite_package, subject_package)
     new_test_path = os.path.join(test_suite_directory, 'TestClass.java')
@@ -51,7 +52,7 @@ def check_if_test_compiles(test_suite_path: str, subject_path: str, test_method:
     try:
         with open(new_test_path, 'w', encoding='utf-8') as f:
             f.write(test_template)
-        append_test_method_to_file(new_test_path, test_method)
+        append_test_method_to_file(new_test_path, unit_test)
 
         javac_command = ['javac', '-cp', 'libs/junit-4.12.jar:.'] + \
             subject_files + [new_test_path]
@@ -59,3 +60,11 @@ def check_if_test_compiles(test_suite_path: str, subject_path: str, test_method:
     finally:
         cleanup_files(new_test_path, os.path.join(
             test_suite_directory, 'TestClass.class'))
+
+
+def get_compilable_tests(destination_test_suite: str, subject_class: str, candidate_tests: List[str]) -> List[str]:
+    compiled_tests = []
+    for test in candidate_tests:
+        if check_if_test_compiles(destination_test_suite, subject_class, test):
+            compiled_tests.append(test)
+    return compiled_tests

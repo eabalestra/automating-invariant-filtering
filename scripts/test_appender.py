@@ -3,61 +3,43 @@ import sys
 import re
 from typing import List
 
-from test_compiler import check_if_test_compiles
-from test_extractor import extract_tests_from_file
 from file_manager import read_file, write_file
-from utils import append_test_method_to_file, extract_package_path
+from utils import append_test_method_to_file
+from test_compiler import get_compilable_tests
+from test_extractor import extract_tests_from_file
+from test_processor import replace_method_calling, add_augmented_to_constructor_subject, add_throws_declaration
+from test_renamer import rename_classes_in_file, rename_test_methods
+from code_extractor import extract_package_path
 
 
-def rename_classes_in_file(file_path: str) -> None:
-    content = read_file(file_path, 'r')
-    pattern = r'(public\s+class\s+)(\w+)(\s*\{)'
-    replacement = r'\1\2Augmented\3'
-    new_content = re.sub(pattern, replacement, content)
-    write_file(file_path, new_content, 'w')
+def prepare_destination_files(destination_test_driver: str, destination_test_suite: str) -> None:
+    rename_classes_in_file(destination_test_suite)
+    rename_classes_in_file(destination_test_driver)
+    tester_class_name = os.path.basename(
+        destination_test_suite).replace('Augmented.java', '')
+    add_augmented_to_constructor_subject(
+        destination_test_driver, tester_class_name)
 
 
-def add_augmented_to_constructor_subject(file_path: str, subject_name: str) -> None:
-    content = read_file(file_path, 'r')
-    escaped_subject = re.escape(subject_name)
-    pattern_regex = rf'\b({escaped_subject})(\b\s+\w+\s*=\s*new\s+)({escaped_subject})(\s*\()'
-    replacement = r'\1Augmented\2\3Augmented\4'
-    new_content = re.sub(pattern_regex, replacement, content)
-    write_file(file_path, new_content, 'w')
+def prepare_tests_for_compilation(tests, source_test_suite, subject_class) -> List[str]:
+    print(f"Processing {len(tests)} tests from {source_test_suite}")
+
+    subject_name = os.path.basename(subject_class).replace('.java', '')
+    subject_package = extract_package_path(subject_class)
+
+    renamed_tests = rename_test_methods(tests, 'llmTest')
+    updated_tests = replace_method_calling(
+        renamed_tests, subject_package, subject_name)
+
+    return add_throws_declaration(updated_tests)
 
 
-def rename_test_methods(test_methods: List[str], new_name: str) -> List[str]:
-    name_pattern = r'public void \w+\(\)'
-    return [
-        re.sub(name_pattern, f'public void {new_name}{i}()', test_method)
-        for i, test_method in enumerate(test_methods)
-    ]
+def append_generated_test_suite_to_original_test_suite(destination_test_suite, test_suite):
+    for test in test_suite:
+        append_test_method_to_file(destination_test_suite, test)
 
 
-def replace_method_calling(test_methods: List[str], subject_package: str, subject: str) -> List[str]:
-    escaped_subject = re.escape(subject)
-
-    constructor_pattern = r'new\s' + escaped_subject + r'\('
-    static_call_pattern = r'\b' + escaped_subject + r'\.'
-    type_declaration_pattern = r'\b' + escaped_subject + r'\s+([a-zA-Z]\w*)\b'
-
-    updated_tests = []
-    for test in test_methods:
-        if re.search(constructor_pattern, test) and not re.search(r'new\s' + re.escape(subject_package) + r'\.' + escaped_subject + r'\(', test):
-            replacement = f'new {subject_package}.{subject}('
-            test = re.sub(constructor_pattern, replacement, test)
-        if re.search(static_call_pattern, test) and not re.search(r'\b' + re.escape(subject_package) + r'\.' + escaped_subject + r'\.', test):
-            replacement = f'{subject_package}.{subject}.'
-            test = re.sub(static_call_pattern, replacement, test)
-        if re.search(type_declaration_pattern, test) and not re.search(r'\b' + re.escape(subject_package) + r'\.' + escaped_subject + r'\s+([a-zA-Z]\w*)\b', test):
-            replacement = f'{subject_package}.{subject} \\1'
-            test = re.sub(type_declaration_pattern, replacement, test)
-        updated_tests.append(test)
-
-    return updated_tests
-
-
-def add_tests_to_driver_file(file_path: str, test_methods: list) -> None:
+def append_tests_to_driver_file(file_path: str, test_methods: List[str]) -> None:
     content = read_file(file_path, 'r')
     if_block_pattern = r'if\s*\(\s*hadFailure\s*\)\s*\{'
     new_tests = "\n".join([
@@ -75,51 +57,13 @@ def add_tests_to_driver_file(file_path: str, test_methods: list) -> None:
     write_file(file_path, new_content, 'w')
 
 
-def add_throws_declaration(test_methods: List[str]) -> List[str]:
-    pattern = r'(public void \w+\(\))\s*(?:throws\s+[^\\{]*)?\s*\{'
-    replacement = r'\1 throws Throwable {'
-
-    updated_tests = []
-    for test in test_methods:
-        test = re.sub(pattern, replacement, test)
-        updated_tests.append(test)
-    return updated_tests
-
-
-def process_tests(destination_test_file: str, test_driver_file: str, source_test_file: str, subject_file: str) -> None:
-    tests = extract_tests_from_file(source_test_file)
-    subject_package = extract_package_path(subject_file)
-    subject = os.path.basename(subject_file).replace('.java', '')
-
-    rename_classes_in_file(destination_test_file)
-    rename_classes_in_file(test_driver_file)
-
-    tester_class_name = os.path.basename(
-        destination_test_file).replace('Augmented.java', '')
-    add_augmented_to_constructor_subject(test_driver_file, tester_class_name)
-
-    if not tests:
-        return
-
-    print(f"Processing {len(tests)} tests from {source_test_file}")
-    renamed_tests = rename_test_methods(tests, 'llmTest')
-    updated_tests = replace_method_calling(
-        renamed_tests, subject_package, subject)
-    updated_tests = add_throws_declaration(updated_tests)
-
-    compiled_test_names = []
-    for test_method in updated_tests:
-        if check_if_test_compiles(destination_test_file, subject_file, test_method):
-            append_test_method_to_file(destination_test_file, test_method)
-            compiled_test_names.append(test_method)
-
-    print(f"Compiled {len(compiled_test_names)} tests from {source_test_file}")
+def get_test_names_from_test_suite(test_suite):
     test_name_regex = r'public void (\w+)\(\)'
     compiled_test_names = [
         re.search(test_name_regex, test).group(1)
-        for test in compiled_test_names if re.search(test_name_regex, test)
+        for test in test_suite if re.search(test_name_regex, test)
     ]
-    add_tests_to_driver_file(test_driver_file, compiled_test_names)
+    return compiled_test_names
 
 
 def main() -> None:
@@ -127,9 +71,27 @@ def main() -> None:
         print("Usage: python3 test_appender.py <destination_suite>.java <destination_driver>.java <source_suite>.java <subject_class>.java")
         sys.exit(1)
 
-    destination_test_file, test_driver_file, source_test_file, subject_file = sys.argv[1:5]
-    process_tests(destination_test_file, test_driver_file,
-                  source_test_file, subject_file)
+    destination_test_suite, destination_test_driver, source_test_suite, subject_class = sys.argv[
+        1:5]
+
+    test_suite = extract_tests_from_file(source_test_suite)
+    if not test_suite:
+        print(f"No tests found in {source_test_suite}")
+        sys.exit(1)
+
+    prepare_destination_files(destination_test_driver, destination_test_suite)
+
+    syntax_repaired_tests = prepare_tests_for_compilation(
+        test_suite, source_test_suite, subject_class)
+
+    compiled_tests = get_compilable_tests(
+        destination_test_suite, subject_class, syntax_repaired_tests)
+    print(f"Compiled {len(compiled_tests)} tests from {source_test_suite}")
+    append_generated_test_suite_to_original_test_suite(
+        destination_test_suite, compiled_tests)
+
+    compiled_test_names = get_test_names_from_test_suite(compiled_tests)
+    append_tests_to_driver_file(destination_test_driver, compiled_test_names)
 
 
 if __name__ == "__main__":
