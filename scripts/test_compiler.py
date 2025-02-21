@@ -3,8 +3,8 @@ import os
 import subprocess
 from typing import List
 
-from utils import append_test_method_to_file
 from code_extractor import extract_package_path
+from append_llm_tests import append_test_method_to_file
 
 
 def get_test_template(package: str, subject_package: str) -> str:
@@ -62,9 +62,9 @@ def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) 
             test_suite_directory, 'TestClass.class'))
 
 
-def get_compilable_tests(destination_test_suite: str, subject_class: str, candidate_tests: List[str]) -> List[str]:
+def get_compilable_tests(compilation_target_suite: str, target_class: str, test_candidates: List[str]) -> List[str]:
     compiled_tests = []
-    for test in candidate_tests:
-        if check_if_test_compiles(destination_test_suite, subject_class, test):
+    for test in test_candidates:
+        if check_if_test_compiles(compilation_target_suite, target_class, test):
             compiled_tests.append(test)
     return compiled_tests

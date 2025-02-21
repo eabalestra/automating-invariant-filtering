@@ -6,6 +6,7 @@ def extract_package_path(file_path: str) -> str:
     if len(parts) > 1:
         result = parts[1].split('/')
         return ".".join(result[:-1]).replace('/', '.')
+    return ""
 
 
 def extract_method_code(class_code: str, method_name: str) -> str:
@@ -30,11 +31,3 @@ def extract_method_code(class_code: str, method_name: str) -> str:
                 break
 
     return class_code[start_index:end_index]
-
-
-def extract_class_name(class_code):
-    pattern = r'public\s+class\s+(\w+)'
-    match = re.search(pattern, class_code)
-    if not match:
-        raise ValueError("Class name not found in the provided class code.")
-    return match.group(1)

@@ -65,4 +65,4 @@ java -Xmx8g -cp "lib/*:${subject_jar}" daikon.tools.InvariantChecker \
     >>"$output_dir/${class_name}_${method_name}.log"
 
 echo "> Filtering invariants"
-python3 automating-invariant-filtering/scripts/filter_invariants_by_method.py invs.csv $fqname $method_name
+python3 automating-invariant-filtering/scripts/filter_invariants_by_method.py invs.csv "$fqname" "$method_name"
