@@ -52,7 +52,8 @@ if w != set():
 
 subject_name = specs_file.split("/")[-1].split(".")[0]
 
-output_file = subject_name + ".non-mutant-killing-assertions"
+output_dir = "output/non-mutant-killing-assertions/"
+output_file = output_dir + subject_name + ".assertions"
 print(f"Writing specs in: {output_file}")
 
 with open(output_file, "w") as file:
