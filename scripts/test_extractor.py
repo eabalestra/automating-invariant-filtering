@@ -47,7 +47,7 @@ def parse_test_from_string(content: str) -> List[str]:
         if test_start_pattern.match(line):
             test_case_started = True
         if test_case_started:
-            extracted_test.append("    " + line)
+            extracted_test.append(line)
             brace_count += line.count('{') - line.count('}')
             if brace_count == 0 and line.strip().endswith('}'):
                 test_case_started = False
