@@ -1,4 +1,7 @@
-def replace_line_in_file(file_path, line_number, new_line):
+import sys
+import os
+
+def replace_line_of_file(file_path, line_number, new_line):
     """
     Replaces a specific line in a Java file while preserving indentation.
     
@@ -23,11 +26,18 @@ def replace_line_in_file(file_path, line_number, new_line):
     
     return lines
 
-file_path = sys.argv[1]  # Change to your Java file path
-line_number = sys.argv[2]  # Line to replace
-new_line = sys.argv[3]  # New line content
+subjects_dir = os.getenv("SUBJECTS_DIR")
+if not subjects_dir:
+    raise ValueError("SUBJECTS_DIR should be set")
 
-new_lines = replace_line_of_file(file_path, line_number, new_line)
+subject_name = sys.argv[1]
+class_name = sys.argv[2]
+mutant = sys.argv[3]
+mutated_line = int(mutant.split(":")[0].strip())
+mutation = mutant.split(":")[1].strip()
+
+orig_file_path = f"{subjects_dir}/{subject_name}/orig/{class_name}.java"
+new_lines = replace_line_of_file(orig_file_path, mutated_line, mutation)
 
 for line in new_lines:
-    print(line)
+    print(line, end='')
