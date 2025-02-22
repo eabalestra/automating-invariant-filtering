@@ -8,16 +8,6 @@ llm_initialized = False
 conversation_context = 0
 
 def generate_test(class_name, class_code, method_code, spec):
-    """Search for MRS in the documentation."""
-    #global llm_initialized
-    #global conversation_context
-    #if not llm_initialized:
-    #    print("Initializing LLM...")
-    #    response = requests.post(ollama_url, json={"model": llm, "system": system_prompt, "prompt": " ".join(first_prompt), "stream": False})
-    #    json_response = json.loads(response.text)
-    #    conversation_context = json_response["context"]
-    #    llm_initialized = True
-
     print("calling llm for spec: ", spec)
     prompt = ''
     if class_code is not None:
