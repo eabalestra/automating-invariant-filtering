@@ -2,9 +2,9 @@
 # You need to be in a Docker container with the specfuzzer tool and in the /specfuzzer directory
 
 echo "Running second round validation"
-if [ "$#" -ne 4 ]; then
+if [ "$#" -ne 5 ]; then
     echo "Illegal number of parameters."
-    echo "Usage: $0 <gassert_subject> <fully.qualified.ClassName> <method_name> <invs_file>.inv.gz"
+    echo "Usage: $0 <gassert_subject> <fully.qualified.ClassName> <method_name> <invs_file>.inv.gz <assertions>.assertions"
     exit 1
 fi
 
@@ -13,22 +13,25 @@ gassert_subject="$1"
 fqname="$2"
 method_name="$3"
 invs_file="$4"
+dot_assertions_file="$5"
 
 class_name="${fqname##*.}"
 test_class_name="${class_name}Tester"
 driver_name="${test_class_name}Driver"
-driver_unqualified="${driver_name}Augmented"
-driver_fqname="testers.${driver_unqualified}"
+augmented_driver="${driver_name}Augmented"
+driver_fqname="testers.${augmented_driver}"
 
 # Directories
 lib_dir="lib"
 gassert_dir="../tools/GAssert"
 subject_sources="${gassert_dir}/subjects/${gassert_subject}"
-automatic_if_subject_dir="automatic-invariant-filtering/output/test/${class_name}"
+automating_if_subject_dir="automating-invariant-filtering/output/${class_name}_${method_name}"
+
+# create output directory
+mkdir -p "$automating_if_subject_dir/specs"
 
 echo "Subject: $gassert_subject"
 echo "GAssert dir: $gassert_dir"
-
 echo "> Recompiling GAssert subject: $gassert_subject"
 current_dir=$(pwd)
 cd "$subject_sources" || exit
@@ -51,18 +54,22 @@ java -cp "${lib_dir}/daikon.jar:${subject_jar}" daikon.DynComp "$driver_fqname" 
 echo "> Running daikon.Chicory with driver: $driver_fqname"
 java -cp "${lib_dir}/daikon.jar:${subject_jar}" daikon.Chicory \
     --output-dir="$output_dir" \
-    --comparability-file="$output_dir/${driver_unqualified}.decls-DynComp" \
-    --ppt-omit-pattern="${driver_unqualified}.*" \
+    --comparability-file="$output_dir/${augmented_driver}.decls-DynComp" \
+    --ppt-omit-pattern="${augmented_driver}.*" \
     "$driver_fqname" \
-    "$output_dir/${driver_unqualified}-objects.xml"
+    "$output_dir/${augmented_driver}-objects.xml"
 
 echo "> Running daikon.tools.InvariantChecker"
 java -Xmx8g -cp "lib/*:${subject_jar}" daikon.tools.InvariantChecker \
     --conf \
-    --serialiazed-objects "$output_dir/${driver_unqualified}-objects.xml" \
+    --serialiazed-objects "$output_dir/${augmented_driver}-objects.xml" \
     "$invs_file" \
-    "$output_dir/${driver_unqualified}.dtrace.gz" \
+    "$output_dir/${augmented_driver}.dtrace.gz" \
     >>"$output_dir/${class_name}_${method_name}.log"
 
 echo "> Filtering invariants"
-python3 automating-invariant-filtering/scripts/filter_invariants_by_method.py invs.csv "$fqname" "$method_name"
+python3 automating-invariant-filtering/scripts/filter_invariants_of_interest.py invs.csv "$fqname" "$method_name"
+filtered_invs_file="$automating_if_subject_dir/specs/filtered-specs.csv"
+
+echo "> Extracting non-filtered assertions"
+python3 automating-invariant-filtering/scripts/extract_non_filtered_assertions.py "$dot_assertions_file" "$filtered_invs_file" "$class_name" "$method_name"
