@@ -36,7 +36,7 @@ non_filtered_df = assertions_df[~is_in_filtered_specs]
 filtered_df = assertions_df[is_in_filtered_specs]
 
 print(f"Specs from {assertions_file}: {len(assertions_df)}")
-print(f'Filtered specs: {len(filtered_df['invariant'].unique())}')
+print(f"Filtered specs: {len(filtered_df['invariant'].unique())}")
 
 ppt_sequence = []
 for ppt in assertions_df['ppt']:
