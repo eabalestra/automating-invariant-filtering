@@ -21,16 +21,10 @@ def is_of_interest(ppt):
 
 input_specifications = pd.read_csv(specs_file)
 
-interest_ppts = list(
-    filter(is_of_interest, input_specifications["ppt"].unique()))
+interest_ppts = list(filter(is_of_interest, input_specifications["ppt"].unique()))
 
-filtered_specs = input_specifications[input_specifications["ppt"].isin(
-    interest_ppts)]
+interest_filtered_specs = input_specifications[input_specifications["ppt"].isin(interest_ppts)]
 
-print(f"Total specs: {len(input_specifications['invariant'])}")
-print(f"Filtered specs: {len(filtered_specs)}")
+output_file = f"{output_directory}/interest-specs.csv"
 
-output_file = f"{output_directory}/filtered-specs.csv"
-
-filtered_specs.to_csv(output_file, index=False)
-print(f"Filtered specs written in: {output_file}")
+interest_filtered_specs.to_csv(output_file, index=False)
