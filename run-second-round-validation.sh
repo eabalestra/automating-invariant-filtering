@@ -1,18 +1,21 @@
 #!/bin/bash
 
+source scripts/init_env.sh
+
 [ -z "$DAIKONDIR" ] && {
     echo "> The environment variable DAIKONDIR is not set"
     exit 1
 }
 
 # Arguments
-target_class="$1"
+subject_name=$1
 target_class_fqname="$2"
-method="$3"
-invs_file="$4"       #.inv.gz
-assertions_file="$5" #.assertions
-
 class_name="${target_class_fqname##*.}"
+target_class=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$class_name".java)
+method="$3"
+invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
+assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.assertions"
+
 test_class_name="${class_name}Tester"
 driver_name="${test_class_name}Driver"
 test_suite_driver="${driver_name}Augmented"
