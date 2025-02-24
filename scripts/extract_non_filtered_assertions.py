@@ -35,7 +35,7 @@ is_in_filtered_specs = assertions_df['invariant'].isin(filtered_specs_list)
 non_filtered_df = assertions_df[~is_in_filtered_specs]
 filtered_df = assertions_df[is_in_filtered_specs]
 
-print(f'Specs from assertions file: {len(assertions_df)}')
+print(f"Specs from {assertions_file}: {len(assertions_df)}")
 print(f'Filtered specs: {len(filtered_df['invariant'].unique())}')
 
 ppt_sequence = []
@@ -55,17 +55,3 @@ with open(output_file, 'w', encoding='utf-8') as file:
         file.write(f'{ppt}\n')
         for inv in group['invariant']:
             file.write(f'{inv}\n')
-
-
-# data = {'invariant': ['A', 'B', 'C', 'D']}
-# assertions_df = pd.DataFrame(data)
-# print(assertions_df['invariant'])
-# filtered_specs_list = ['A', 'C', 'E']
-# print('')
-
-# is_not_filtered = ~assertions_df['invariant'].isin(set(filtered_specs_list))
-# print(is_not_filtered)
-
-# assertions_df = assertions_df[is_not_filtered]
-# print('')
-# print(assertions_df['invariant'])
