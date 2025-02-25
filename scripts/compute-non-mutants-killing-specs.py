@@ -50,7 +50,7 @@ w = set(mutant_killing_specs) - specs
 if w != set():
     print(
         f"specs in mutant-killing specs that do not belong to the set of total specs: {w}")
-    print("TODO: Where this specs come from?")
+    print("TODO: Where this specs came from?")
 
 subject_name = specs_file.split("/")[-1].split(".")[0]
 
