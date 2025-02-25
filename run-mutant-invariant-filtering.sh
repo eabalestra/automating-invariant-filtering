@@ -1,4 +1,5 @@
 #!/bin/bash
+source scripts/init_env.sh
 
 # Arguments
 subject_name="$1"
