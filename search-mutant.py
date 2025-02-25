@@ -9,6 +9,8 @@ method_name = sys.argv[2]
 code = attr_and_method_extractor.extract_class_attributes_and_method(
     class_file, method_name)
 
+class_name = os.path.basename(class_file).replace('.java', '')
+
 # Load test suite
 # TODO: load from a test file all the test one by one (should be sys.argv[3])
 # example = """    @Test
@@ -35,7 +37,7 @@ non_mutant_killing_specs = spec_reader.read_and_filter_specs(sys.argv[4])
 mutation_attempts = 1
 for spec in non_mutant_killing_specs:
     print(f"Generating mutant for spec: {spec}")
-    spec = spec_processor.update_specification_variables(spec)
+    spec = spec_processor.update_specification_variables(spec, class_name)
     for test in test_suite:
         for i in range(mutation_attempts):
             mutation = mutant_generator.generate_mutant(code, test, spec)

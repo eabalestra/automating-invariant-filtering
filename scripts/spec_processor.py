@@ -55,21 +55,24 @@ def split_by_operator_outside_parens(spec: str, op_regex: re.Pattern, max_splits
     return parts
 
 
-def update_specification_variables(specification: str) -> str:
+def update_specification_variables(specification: str, class_name: str) -> str:
     processed_spec = specification.replace("FuzzedInvariant", "").strip()
+
     if "holds for:" in processed_spec:
-        processed_spec, vars_part = processed_spec.split("holds for:")
+        processed_spec, vars_section = processed_spec.split("holds for:")
         processed_spec = processed_spec.strip()
-        variable_names = vars_part.strip().strip("<>").split(",")
+        variable_names = vars_section.strip().strip("<>").split(",")
 
         quantified_pattern = re.compile(
             r'\b(?:some|all|no)\s+n\b', re.IGNORECASE)
         if quantified_pattern.search(processed_spec):
             variable_names = variable_names[1:]
 
-        for var in variable_names:
-            # if var.startswith("orig("):
-            #     var = var.replace("orig(", "").replace(")", "")
+        variable_iter = iter(variable_names)
+        for var in variable_iter:
+            if (var == "this" or var == "orig(this)") and class_name in specification:
+                processed_spec = processed_spec.replace(class_name, var)
+                var = next(variable_iter, var)
             match = re.search(r'\w+_Variable_\d+', processed_spec)
             if match:
                 processed_spec = processed_spec.replace(
