@@ -41,3 +41,7 @@ mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g' | a
 
 # write the mutations to a file
 echo "$mutations" >"$mutants_dir/mutations.txt"
+
+while IFS= read -r mutant; do
+    python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
+done <"$mutants_dir/mutations.txt"
