@@ -16,5 +16,4 @@ def generate_mutant(code, test, assertion):
     print(prompt)
     response = requests.post(ollama_url, json={"model": llm, "prompt": prompt, "stream": False})
     json_response = json.loads(response.text)
-    print(json_response["response"]+'\n')
     return json_response["response"]
