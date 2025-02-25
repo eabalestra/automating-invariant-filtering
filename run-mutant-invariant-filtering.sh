@@ -24,9 +24,9 @@ echo "> Test suite: $test_suite_name"
 # Create the output directory
 automating_if_subject_dir="output/${class_name}_${method_name}"
 assertions_dir="$automating_if_subject_dir/specs"
-mutants_dir="$automating_if_subject_dir/mutants"
+mutants_dir="$automating_if_subject_dir/mutations"
 mkdir -p "$assertions_dir"
-mkdir -p "$mutants_dir"
+mkdir -p "$mutants_dir/mutants"
 
 # Get the non-mutant killing assertions
 python scripts/compute-non-mutants-killing-specs.py "$assertions_file" "$invs_by_mutants" "$class_name" "$method_name"
@@ -42,6 +42,17 @@ mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g' | a
 # write the mutations to a file
 echo "$mutations" >"$mutants_dir/mutations.txt"
 
+# backup the original class
+cp "$class_path" "$mutants_dir"
+
+# apply the mutations
+i=0
 while IFS= read -r mutant; do
-    python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
+    python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path" "$mutants_dir"
+    cp "$class_path" "$mutants_dir"/mutants/"$class_name"-${i}.java
+    i=$((i + 1))
 done <"$mutants_dir/mutations.txt"
+
+# restore the original class
+rm "$class_path"
+mv "$mutants_dir/$class_name.java" "$class_path"
