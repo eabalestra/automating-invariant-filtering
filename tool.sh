@@ -41,6 +41,6 @@ if [ "$1" = "--daikon-val-filter" ]; then
 fi
 
 echo './tool.sh: invalid option: '"$1"
-echo 'usage: ./tool.sh --gen-llm-suite <subject_name> <target_class> <method> <test_suite> <test_driver>'
-echo '       ./tool.sh --second-round-validation <subject_name> <target_class> <method>'
+echo 'usage: ./tool.sh --llm-test-aug <subject_name> <target_class> <method> <test_suite> <test_driver>'
+echo '       ./tool.sh --daikon-val-filter <subject_name> <target_class> <method>'
 exit 1
