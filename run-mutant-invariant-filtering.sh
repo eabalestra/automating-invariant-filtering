@@ -1,5 +1,5 @@
 #!/bin/bash
-source scripts/init_env.sh
+#source scripts/init_env.sh
 
 # Arguments
 subject_name="$1"
@@ -23,12 +23,21 @@ echo "> Test suite: $test_suite_name"
 
 # Create the output directory
 automating_if_subject_dir="output/${class_name}_${method_name}"
+assertions_dir="$automating_if_subject_dir/specs"
 mutants_dir="$automating_if_subject_dir/mutants"
+mkdir -p "$assertions_dir"
 mkdir -p "$mutants_dir"
 
 # Get the non-mutant killing assertions
 python scripts/compute-non-mutants-killing-specs.py "$assertions_file" "$invs_by_mutants" "$class_name" "$method_name"
-non_mutant_killing_assertions_file="$mutants_dir/${assertions_file_name}-non-mutant-killing.assertions"
+non_mutant_killing_assertions_file="$assertions_dir/${assertions_file_name}-non-mutant-killing.assertions"
 
-# Generate mutants using LLM
-python search-mutant.py "$class_path" "$method_name" "$test_suite" "$non_mutant_killing_assertions_file"
+# generate mutants using LLM
+python search-mutant.py "$class_path" "$method_name" "$test_suite" "$non_mutant_killing_assertions_file" "$mutants_dir"
+generated_mutants=$mutants_dir/llm/${class_name}_${method_name}LlmGeneratedMutants.txt
+
+# extract the mutations from the generated response
+mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g')
+
+# write the mutations to a file
+echo "$mutations" >"$mutants_dir/mutations.txt"
