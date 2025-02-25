@@ -56,7 +56,7 @@ subject_name = specs_file.split("/")[-1].split(".")[0]
 
 class_name = sys.argv[3]
 method_name = sys.argv[4]
-output_dir = f"output/{class_name}_{method_name}/mutants/"
+output_dir = f"output/{class_name}_{method_name}/specs/"
 output_file = output_dir + subject_name + "-non-mutant-killing.assertions"
 print(f"Writing specs in: {output_file}")
 
