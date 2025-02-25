@@ -1,5 +1,5 @@
 #!/bin/bash
-#source scripts/init_env.sh
+source scripts/init_env.sh
 
 # Arguments
 subject_name="$1"
@@ -37,7 +37,7 @@ python search-mutant.py "$class_path" "$method_name" "$test_suite" "$non_mutant_
 generated_mutants=$mutants_dir/llm/${class_name}_${method_name}LlmGeneratedMutants.txt
 
 # extract the mutations from the generated response
-mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g')
+mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g' | awk '!seen[$0]++')
 
 # write the mutations to a file
 echo "$mutations" >"$mutants_dir/mutations.txt"
