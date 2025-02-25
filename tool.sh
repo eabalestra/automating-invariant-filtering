@@ -12,19 +12,20 @@
     echo "> The environment variable DAIKONDIR is not set"
     exit 1
 }
+[ -z "$VIRTUAL_ENV" ] && {
+    echo "> The virtual environment is not activated"
+    exit 1
+}
 
 subject_name=$2
 target_class_fqname=$3
 method_name=$4
 
 LIGHT_BLUE="\033[94m"
-WHITE="\033[97m"
-YELLOW="\033[93m"
+BOLD="\033[1m"
 RESET="\033[0m"
 
-echo "${LIGHT_BLUE}╔════════════════════════╗${RESET}"
-echo "${WHITE}║      ${YELLOW}${BOLD}AUTOMATIC-IF ${RESET}${WHITE}     ║${RESET}"
-echo "${LIGHT_BLUE}╚════════════════════════╝${RESET}"
+echo "${LIGHT_BLUE}${BOLD}Running automatic invariant filtering for $target_class_fqname::$method_name${RESET}"
 
 if [ "$1" = "--llm-test-aug" ]; then
     class_name="${target_class_fqname##*.}"
