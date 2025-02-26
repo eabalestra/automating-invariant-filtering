@@ -6,9 +6,6 @@ from re import search
 specs_file = sys.argv[1]
 specs_and_mutants_file = sys.argv[2]
 
-print(specs_file)
-print(specs_and_mutants_file)
-
 
 def is_inv_line(line):
     return not (search(":::OBJECT", line) or search("==============", line) or search(":::EXIT", line) or search(":::ENTER", line))
@@ -39,7 +36,7 @@ specs_and_mutants_df = pd.read_csv(specs_and_mutants_file)
 mutant_killing_specs = specs_and_mutants_df["invariant"].unique()
 mutant_killing_specs = list(filter(is_of_interest, mutant_killing_specs))
 
-print(f"Total specs: {len(specs)}")
+print(f"Total specs from {os.path.basename(specs_file)}: {len(specs)}")
 print(f"Total mutant-killing specs: {len(mutant_killing_specs)}")
 
 non_mutant_killing_specs = list(set(specs) - set(mutant_killing_specs))
