@@ -54,7 +54,7 @@ echo ''
 mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g' | awk '!seen[$0]++')
 
 # write the mutations to a file
-echo "$mutations" >"$mutants_dir/mutations.txt"
+echo "$mutations" >"$mutants_dir/generated-mutations.txt"
 
 # backup the original class
 cp "$class_path" "$mutants_dir"
@@ -62,13 +62,24 @@ cp "$class_path" "$mutants_dir"
 # apply the mutations
 echo '> Applying mutations'
 i=0
+touch "$mutants_dir/compiled-mutations.txt"
 while IFS= read -r mutant; do
     python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path" "$mutants_dir"
     mutant_dir="$mutants_dir"/mutants/${i}
     mkdir -p "$mutant_dir"
     cp "$class_path" "$mutant_dir"/"$class_name".java
-    i=$((i + 1))
-done <"$mutants_dir/mutations.txt"
+
+    javac -cp "$build_dir/libs/*" -d "$build_dir" "$mutant_dir/$class_name.java"
+    if [ $? -ne 0 ]; then
+        echo "Mutant $i failed to compile. Discarding."
+        rm -rf "$mutant_dir"
+        rm $class_path
+        cp "$mutants_dir/$class_name.java" "$class_path"
+    else
+        echo "$mutant" >>"$mutants_dir/compiled-mutations.txt"
+        i=$((i + 1))
+    fi
+done <"$mutants_dir/generated-mutations.txt"
 echo ''
 
 # restore the original class
