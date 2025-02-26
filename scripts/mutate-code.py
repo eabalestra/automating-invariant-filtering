@@ -32,19 +32,14 @@ def replace_line_of_file(file_path: str, line_number: int, new_line: str) -> str
 subject_name = sys.argv[1]
 class_name = sys.argv[2]
 mutant = sys.argv[3]
+class_file = sys.argv[4]
+
 mutated_line = int(mutant.split(":")[0].strip())
 mutation = mutant.split(":")[1].strip()
 
-class_file = sys.argv[4]
 new_lines = replace_line_of_file(class_file, mutated_line, mutation)
 
-output_dir = sys.argv[5]
-class_path = os.path.dirname(class_file)
+os.remove(class_file)
 
-if os.path.exists(class_file):
-    os.remove(class_file)
-
-mutated_class_file = os.path.join(class_path, f"{class_name}.java")
-
-with open(mutated_class_file, 'w') as f:
+with open(class_file, 'w') as f:
     f.writelines(new_lines)
