@@ -1,3 +1,4 @@
+import os
 import sys
 import pandas as pd
 
@@ -35,7 +36,7 @@ is_in_filtered_specs = assertions_df['invariant'].isin(filtered_specs_list)
 non_filtered_df = assertions_df[~is_in_filtered_specs]
 filtered_df = assertions_df[is_in_filtered_specs]
 
-print(f"Specs from {assertions_file}: {len(assertions_df)}")
+print(f"Specs from {os.path.basename(assertions_file)}: {len(assertions_df)}")
 print(f"Filtered specs: {len(filtered_df['invariant'].unique())}")
 
 ppt_sequence = []
