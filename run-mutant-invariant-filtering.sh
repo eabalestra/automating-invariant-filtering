@@ -18,10 +18,10 @@ test_suite=$(find "$subject_sources/src/test/java" -type f -name "$test_suite_na
 build_dir=$subject_sources/build
 subject_cp="$build_dir/libs/*"
 cp_for_daikon="libs/*:$subject_cp"
-daikon_output_folder="$automating_if_subject_dir/daikon"
 
 # Remove the word driver from test_suite_driver_name
 driver_base=${test_suite_driver_name%Driver}
+driver_base=${driver_base%DriverAugmented}
 assertions_file_name=$(basename "${assertions_file%.*}")
 
 echo "=> Running mutation-based invariant filtering"
@@ -34,6 +34,7 @@ echo ""
 automating_if_subject_dir="output/${class_name}_${method_name}"
 assertions_dir="$automating_if_subject_dir/specs"
 mutants_dir="$automating_if_subject_dir/mutations"
+daikon_output_folder="$automating_if_subject_dir/daikon"
 mkdir -p "$assertions_dir"
 mkdir -p "$mutants_dir/mutants"
 
@@ -84,7 +85,7 @@ for dir in $mutants_dir/mutants/*/; do
     echo '> Generating traces with Chicory from mutant'
     dir2=${dir%*/}
     number=${dir2##*/}
-    java -cp $cp_for_daikon daikon.Chicory --output-dir=daikon-outputs/mutants --comparability-file=$daikon_output_folder/$driver_base'DriverAugmented.decls-DynComp' --ppt-omit-pattern=$driver_base'.*' --ppt-omit-pattern='org.junit.*' --dtrace-file=$driver_base'Driver-m'$number'.dtrace.gz' testers.$driver_base'Driver' daikon-outputs/mutants/$driver_base'Driver-m'$number'-objects.xml' >/dev/null 2>&1
+    java -cp $cp_for_daikon daikon.Chicory --output-dir=daikon-outputs/mutants --comparability-file=$daikon_output_folder/$test_suite_driver_name'.decls-DynComp' --ppt-omit-pattern=$driver_base'.*' --ppt-omit-pattern='org.junit.*' --dtrace-file=$test_suite_driver_name'-m'$number'.dtrace.gz' testers.$test_suite_driver_name daikon-outputs/mutants/$test_suite_driver_name'-m'$number'-objects.xml' >/dev/null 2>&1
     echo ''
 done
 
@@ -92,6 +93,7 @@ done
 mkdir -p $mutants_dir/mutants-traces
 rm -rf $mutants_dir/mutants-traces/*
 mv daikon-outputs/mutants/$driver_base* $mutants_dir/mutants-traces/
+rm -rf daikon-outputs
 
 echo '> Done'
 echo ''
