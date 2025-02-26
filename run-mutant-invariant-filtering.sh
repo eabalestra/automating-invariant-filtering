@@ -55,30 +55,29 @@ mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g' | a
 
 # write the mutations to a file
 echo "$mutations" >"$mutants_dir/generated-mutations.txt"
+[ -f "$mutants_dir/compiled-mutations.txt" ] && rm "$mutants_dir/compiled-mutations.txt"
 
 # backup the original class
 cp "$class_path" "$mutants_dir"
 
 # apply the mutations
-echo '> Applying mutations'
 i=0
-touch "$mutants_dir/compiled-mutations.txt"
+echo '> Applying mutations'
 while IFS= read -r mutant; do
-    python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path" "$mutants_dir"
+    python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
     mutant_dir="$mutants_dir"/mutants/${i}
     mkdir -p "$mutant_dir"
-    cp "$class_path" "$mutant_dir"/"$class_name".java
+    mv "$class_path" "$mutant_dir"/"$class_name".java
 
-    javac -cp "$build_dir/libs/*" -d "$build_dir" "$mutant_dir/$class_name.java"
+    javac -cp "$build_dir/libs/*" -d "$build_dir" "$mutant_dir/$class_name.java" >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "Mutant $i failed to compile. Discarding."
         rm -rf "$mutant_dir"
-        rm $class_path
-        cp "$mutants_dir/$class_name.java" "$class_path"
     else
         echo "$mutant" >>"$mutants_dir/compiled-mutations.txt"
         i=$((i + 1))
     fi
+
+    cp "$mutants_dir/$class_name.java" "$class_path"
 done <"$mutants_dir/generated-mutations.txt"
 echo ''
 
@@ -96,7 +95,7 @@ for dir in $mutants_dir/mutants/*/; do
     echo '> Generating traces with Chicory from mutant'
     dir2=${dir%*/}
     number=${dir2##*/}
-    java -cp $cp_for_daikon daikon.Chicory --output-dir=daikon-outputs/mutants --comparability-file=$daikon_output_folder/$test_suite_driver_name'.decls-DynComp' --ppt-omit-pattern=$driver_base'.*' --ppt-omit-pattern='org.junit.*' --dtrace-file=$test_suite_driver_name'-m'$number'.dtrace.gz' testers.$test_suite_driver_name daikon-outputs/mutants/$test_suite_driver_name'-m'$number'-objects.xml' >/dev/null 2>&1
+    java -cp $cp_for_daikon daikon.Chicory --output-dir=daikon-outputs/mutants --comparability-file=$daikon_output_folder/$test_suite_driver_name'.decls-DynComp' --ppt-omit-pattern=$driver_base'.*' --ppt-omit-pattern='org.junit.*' --dtrace-file=$test_suite_driver_name'-llm-m'$number'.dtrace.gz' testers.$test_suite_driver_name daikon-outputs/mutants/$test_suite_driver_name'-llm-m'$number'-objects.xml' >/dev/null 2>&1
     echo ''
 done
 
