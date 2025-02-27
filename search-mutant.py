@@ -11,14 +11,11 @@ code = attr_and_method_extractor.extract_class_attributes_and_method(
 
 class_name = os.path.basename(class_file).replace('.java', '')
 
-# Load test suite
-test_suite = test_extractor.extract_tests_from_file(sys.argv[3])
-
 # Read the specs file
-non_mutant_killing_specs = spec_reader.read_and_filter_specs(sys.argv[4])
+non_mutant_killing_specs = spec_reader.read_and_filter_specs(sys.argv[3])
 
 # create the output file
-output_dir = sys.argv[5]
+output_dir = sys.argv[4]
 output_mutant_dir = os.path.join(output_dir, "llm")
 os.makedirs(output_mutant_dir, exist_ok=True)
 mutation_file = os.path.join(
@@ -30,9 +27,8 @@ with open(mutation_file, 'a') as f:
         print(f"Original spec: {spec}")
         spec = spec_processor.update_specification_variables(spec, class_name)
         print(f"calling llm for spec: {spec}")
-        for test in test_suite:
-            for i in range(mutation_attempts):
-                mutation = mutant_generator.generate_mutant(code, test, spec)
-                print(mutation)
-                # save response to a file in the output directory
-                f.write(mutation + '\n')
+        for i in range(mutation_attempts):
+            mutation = mutant_generator.generate_mutant(code, spec)
+            print(mutation)
+            # save response to a file in the output directory
+            f.write(mutation + '\n')
