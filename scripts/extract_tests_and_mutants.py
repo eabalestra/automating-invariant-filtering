@@ -1,17 +1,18 @@
 import sys
 import re
 
-test_and_mutants_file = sys.argv[1]
+tests_and_mutants_file = sys.argv[1]
+output_mutation = sys.argv[2]
 
 reading_test = False
 reading_mutant = False
 
-test_and_mutants = []
+tests_and_mutants = []
 
 test = ""
 mutant = ""
 
-with open(test_and_mutants_file, 'r') as f:
+with open(tests_and_mutants_file, 'r') as f:
     for line in f.readlines():
         if "[[TEST]]" in line:
             reading_test = True
@@ -31,11 +32,11 @@ with open(test_and_mutants_file, 'r') as f:
                 mutant += line
             else:
                 reading_mutant = False
-                test_and_mutants.append((test, mutant))
+                tests_and_mutants.append((test, mutant))
                 mutant = ""
                 test = ""
             
-
-for (t, m) in test_and_mutants:
-    print(t)
-    print(m)
+with open(output_mutation, 'w') as mutants_file:
+    for (t, m) in tests_and_mutants:
+        print(t)
+        mutants_file.write(m)
