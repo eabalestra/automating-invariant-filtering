@@ -5,8 +5,8 @@ source scripts/init_env.sh
 subject_name="$1"
 target_class_fqname="$2"
 method_name="$3"
-test_suite_name="$4"
-test_suite_driver_name="$5"
+#test_suite_name="$4"
+#test_suite_driver_name="$5"
 class_name="${target_class_fqname##*.}"
 
 # Find the files
@@ -40,21 +40,18 @@ mkdir -p "$mutants_dir/mutants"
 
 # Get the non-mutant killing assertions
 echo "> Computing non-mutant killing assertions"
-python scripts/compute-non-mutants-killing-specs.py "$assertions_file" "$invs_by_mutants" "$class_name" "$method_name"
+python3 scripts/compute-non-mutants-killing-specs.py "$assertions_file" "$invs_by_mutants" "$class_name" "$method_name"
 non_mutant_killing_assertions_file="$assertions_dir/${assertions_file_name}-non-mutant-killing.assertions"
 echo ''
 
 # generate mutants using LLM
 echo '> Generating mutants using LLM'
-python search-mutant.py "$class_path" "$method_name" "$test_suite" "$non_mutant_killing_assertions_file" "$mutants_dir"
+python3 search-mutant.py "$class_path" "$method_name" "$non_mutant_killing_assertions_file" "$mutants_dir"
 generated_mutants=$mutants_dir/llm/${class_name}_${method_name}LlmGeneratedMutants.txt
 echo ''
 
-# extract the mutations from the generated response
-mutations=$(grep -o '[0-9]\+:.*[;:{}()]' "$generated_mutants" | sed 's/`//g' | awk '!seen[$0]++')
-
-# write the mutations to a file
-echo "$mutations" >"$mutants_dir/generated-mutations.txt"
+# extract the mutations from the generated response and write the mutations to a file
+python3 scripts/extract_tests_and_mutants.py "$generated_mutants" "$mutants_dir/generated-mutations.txt"
 [ -f "$mutants_dir/compiled-mutations.txt" ] && rm "$mutants_dir/compiled-mutations.txt"
 
 # backup the original class
@@ -64,7 +61,7 @@ cp "$class_path" "$mutants_dir"
 i=0
 echo '> Applying mutations'
 while IFS= read -r mutant; do
-    python scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
+    python3 scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
     mutant_dir="$mutants_dir"/mutants/${i}
     mkdir -p "$mutant_dir"
     mv "$class_path" "$mutant_dir"/"$class_name".java
