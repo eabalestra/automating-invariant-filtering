@@ -26,6 +26,7 @@ def extract_class_attributes_and_method(file_path, method_name):
         # Detect class start (handle cases where { is on a separate line)
         if not inside_class and re.match(r'(\s|\t)*(public|private|protected)?\s*(class|interface)\s+\w+', line):
             class_signature_found = True
+            filtered_lines.append(f"{i:3} {line}")
             inside_class = False
         
         if class_signature_found and "{" in line:
@@ -37,6 +38,7 @@ def extract_class_attributes_and_method(file_path, method_name):
             open_braces += line.count("{")
             open_braces -= line.count("}")
             if open_braces == 0:
+                filtered_lines.append(f"{i:3} {line}")
                 inside_class = False
 
         if inside_class:
