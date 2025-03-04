@@ -24,6 +24,7 @@ result >= 0
 [[REASONING]]
 If we invert the condition from (x < 0) to (x > 0) in line 4, and we call call abs(-3), we will get -3 again, therefore the assertion result >= 0 will fail.
 [[TEST]]
+@Test
 public void test() throws Throwable {
     MathUtils helper = new MathUtils();
     int a = -3;
