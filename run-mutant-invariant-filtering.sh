@@ -5,8 +5,8 @@ source scripts/init_env.sh
 subject_name="$1"
 target_class_fqname="$2"
 method_name="$3"
-#test_suite_name="$4"
-#test_suite_driver_name="$5"
+test_suite_name="$4"
+test_driver_name="$5"
 class_name="${target_class_fqname##*.}"
 
 # Find the files
@@ -15,12 +15,13 @@ class_path=$(find "$subject_sources/src/main/java" -type f -name "$class_name".j
 assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method_name-specfuzzer-1.assertions"
 invs_by_mutants="$SPECS_DIR/$subject_name/output/$class_name-$method_name-specfuzzer-1-invs-by-mutants.csv"
 test_suite=$(find "$subject_sources/src/test/java" -type f -name "$test_suite_name".java)
+test_driver=$(find "$SUBJECTS_DIR/$subject_name/src/test/java" -type f -name "$test_driver_name".java)
 build_dir=$subject_sources/build
 subject_cp="$build_dir/libs/*"
 cp_for_daikon="libs/*:$subject_cp"
 
 # Remove the word driver from test_suite_driver_name
-driver_base=${test_suite_driver_name%Driver}
+driver_base=${test_driver_name%Driver}
 driver_base=${driver_base%DriverAugmented}
 assertions_file_name=$(basename "${assertions_file%.*}")
 
@@ -28,6 +29,7 @@ echo "=> Running mutation-based invariant filtering"
 echo "> Class: $class_name"
 echo "> Method: $method_name"
 echo "> Test suite: $test_suite_name"
+echo "> Test driver: $test_driver_name"
 echo ""
 
 # Create the output directory
@@ -54,6 +56,9 @@ echo ''
 python3 scripts/extract_tests_and_mutants.py "$generated_mutants" "$mutants_dir/generated-mutations.txt"
 [ -f "$mutants_dir/compiled-mutations.txt" ] && rm "$mutants_dir/compiled-mutations.txt"
 
+# TODO: fix tests with script
+# TODO: quedarse con los mutantes unicos, ya que en el csv agarra todos los tests por mutante
+
 # backup the original class
 cp "$class_path" "$mutants_dir"
 
@@ -66,7 +71,14 @@ while IFS= read -r mutant; do
     mkdir -p "$mutant_dir"
     mv "$class_path" "$mutant_dir"/"$class_name".java
 
+    # generar suite y driver
+    python3 scripts/generate_mutant_test_files.py "$mutant" mutant_tests.csv "$test_suite" "$test_driver" "$mutant_dir" $i
+
+    # compile files
     javac -cp "$build_dir/libs/*" -d "$build_dir" "$mutant_dir/$class_name.java" >/dev/null 2>&1
+    # TODO compile suite
+    # TODO compile driver
+
     if [ $? -ne 0 ]; then
         rm -rf "$mutant_dir"
     else
@@ -82,6 +94,10 @@ echo ''
 rm "$class_path"
 mv "$mutants_dir/$class_name.java" "$class_path"
 
+# remove csv file
+rm -f mutant_tests.csv
+
+# TODO: generate dynamic comparability file for each mutant driver
 echo '> Processing mutants'
 for dir in $mutants_dir/mutants/*/; do
     target_file=$(basename "$class_path")
