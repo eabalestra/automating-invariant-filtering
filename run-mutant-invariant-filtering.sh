@@ -53,11 +53,8 @@ generated_mutants=$mutants_dir/llm/${class_name}_${method_name}LlmGeneratedMutan
 echo ''
 
 # extract the mutations from the generated response and write the mutations to a file
-python3 scripts/extract_tests_and_mutants.py "$generated_mutants" "$mutants_dir/generated-mutations.txt"
+python3 scripts/extract_tests_and_mutants.py "$generated_mutants" "$mutants_dir/generated-mutations.txt" "$class_path"
 [ -f "$mutants_dir/compiled-mutations.txt" ] && rm "$mutants_dir/compiled-mutations.txt"
-
-# TODO: fix tests with script
-# TODO: quedarse con los mutantes unicos, ya que en el csv agarra todos los tests por mutante
 
 # backup the original class
 cp "$class_path" "$mutants_dir"
