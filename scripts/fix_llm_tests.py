@@ -6,11 +6,6 @@ from typing import List
 from code_extractor import extract_package_path
 from test_extractor import extract_tests_from_file
 
-output_dir = sys.argv[1]
-source_test_suite = sys.argv[2]
-subject_class = sys.argv[3]
-method_name = sys.argv[4]
-
 
 def rename_test_methods(test_methods: List[str], new_name: str) -> List[str]:
     name_pattern = r'public void \w+\(\)'
@@ -31,7 +26,7 @@ def add_throws_declaration(test_methods: List[str]) -> List[str]:
     return updated_tests
 
 
-def replace_class_references(test_list: List[str]) -> List[str]:
+def replace_class_references(test_list: List[str], subject_class: str) -> List[str]:
     subject_package = extract_package_path(subject_class)
     subject_dir = os.path.dirname(subject_class)
     package_files = glob.glob(os.path.join(subject_dir, '*.java'))
@@ -48,9 +43,14 @@ def replace_class_references(test_list: List[str]) -> List[str]:
     return updated_tests
 
 
-class_name = os.path.basename(subject_class).replace('.java', '')
-fixed_test_suite = os.path.join(
-    output_dir, f"{class_name}_{method_name}LlmFixedTest.java")
+def add_test_signatures(test_methods: List[str]) -> List[str]:
+    updated_tests = []
+    for test in test_methods:
+        if not "@Test" in test:
+            test = f"@Test\n{test}"
+        updated_tests.append(test)
+    return updated_tests
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 4:
@@ -58,20 +58,29 @@ if __name__ == "__main__":
             "Usage: python fix_llm_tests.py <output_dir> <source_test_suite> <subject_class>.java <method_name>")
         sys.exit(1)
 
+    output_dir = sys.argv[1]
     source_test_suite = sys.argv[2]
+    subject_class = sys.argv[3]
+    method_name = sys.argv[4]
+
+    class_name = os.path.basename(subject_class).replace('.java', '')
+    fixed_test_suite = os.path.join(
+        output_dir, f"{class_name}_{method_name}LlmFixedTest.java")
+
     test_suite = extract_tests_from_file(source_test_suite)
     if not test_suite:
         print(f"No tests found in {source_test_suite}")
         sys.exit(1)
 
     renamed_tests = rename_test_methods(test_suite, 'llmTest')
-    updated_tests = replace_class_references(renamed_tests)
+    updated_tests = replace_class_references(renamed_tests, subject_class)
     repaired_tests = add_throws_declaration(updated_tests)
+    fixed_tests = add_test_signatures(repaired_tests)
 
     print(f"Processing {len(test_suite)} tests from {source_test_suite}")
-    print(f"Repaired tests: {len(repaired_tests)}")
+    print(f"Repaired tests: {len(fixed_tests)}")
     print(f"Writing repaired tests to {fixed_test_suite}")
 
-    for test in repaired_tests:
+    for test in fixed_tests:
         with open(fixed_test_suite, "a") as file:
             file.write(test + "\n")
