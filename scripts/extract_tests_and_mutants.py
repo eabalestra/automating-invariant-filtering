@@ -19,11 +19,12 @@ test = ""
 mutant = ""
 
 with open(tests_and_mutants_file, 'r') as f:
+    brace_count = 0
+    test_start_pattern = re.compile(r'^\s*@Test')
     for line in f.readlines():
-        if "[[TEST]]" in line:
+        if "[[TEST]]" in line or test_start_pattern.match(line):
             reading_test = True
             reading_mutant = False
-            mutant = ""
             continue
         if "[[MUTATION]]" in line:
             reading_test = False
@@ -32,15 +33,23 @@ with open(tests_and_mutants_file, 'r') as f:
 
         if reading_test:
             test += line
+            brace_count += line.count('{') - line.count('}')
+            if brace_count == 0 and line.strip().endswith('}'):
+                test_case_started = False
+                if test != "":
+                    tests.append(test)
+                test = ""
 
         if reading_mutant:
-            if re.match(r'\d+:.+', line):
+            # if re.match(r'\d+:.+', line):
+            if re.match(r'\d+:.*[;:{}()]', line):
                 mutant += line
             else:
                 reading_mutant = False
                 if test != "":
                     tests.append(test)
-                mutants.append(mutant)
+                if mutant != "":
+                    mutants.append(mutant)
                 mutant = ""
                 test = ""
 
