@@ -1,5 +1,6 @@
 #!/bin/bash
 source scripts/init_env.sh
+source venv/bin/activate
 
 # Arguments
 subject_name="$1"
