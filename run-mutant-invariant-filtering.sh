@@ -68,13 +68,13 @@ while IFS= read -r mutant; do
     mkdir -p "$mutant_dir"
     mv "$class_path" "$mutant_dir"/"$class_name".java
 
-    # generar suite y driver
+    # generate test files for the mutant
     python3 scripts/generate_mutant_test_files.py "$mutant" mutant_tests.csv "$test_suite" "$test_driver" "$mutant_dir" $i
 
     # compile files
     javac -cp "$build_dir/libs/*" -d "$build_dir" "$mutant_dir/$class_name.java" >/dev/null 2>&1
-    # TODO compile suite
-    # TODO compile driver
+    javac -cp "libs/junit-4.12.jar:$subject_cp:$build_dir" -d "$build_dir" "$mutant_dir/${test_suite_name}Mutant${i}.java" >/dev/null 2>&1
+    javac -cp "libs/junit-4.12.jar:$subject_cp:$build_dir" -d "$build_dir" "$mutant_dir/${test_driver_name}Mutant${i}.java" >/dev/null 2>&1
 
     if [ $? -ne 0 ]; then
         rm -rf "$mutant_dir"
@@ -94,7 +94,7 @@ mv "$mutants_dir/$class_name.java" "$class_path"
 # remove csv file
 rm -f mutant_tests.csv
 
-# TODO: generate dynamic comparability file for each mutant driver
+# TODO: generate dynamic comparability file for each mutant driver and generate traces
 echo '> Processing mutants'
 for dir in $mutants_dir/mutants/*/; do
     target_file=$(basename "$class_path")
