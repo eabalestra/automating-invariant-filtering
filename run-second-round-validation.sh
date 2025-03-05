@@ -1,6 +1,6 @@
 #!/bin/bash
-
 source scripts/init_env.sh
+source venv/bin/activate
 
 [ -z "$DAIKONDIR" ] && {
     echo "> The environment variable DAIKONDIR is not set"
