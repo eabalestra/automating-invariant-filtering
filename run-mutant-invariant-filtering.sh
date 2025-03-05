@@ -97,6 +97,11 @@ while IFS= read -r mutant; do
     # Generate test files for the mutant
     python3 scripts/generate_mutant_test_files.py "$mutant" mutant_tests.csv "$test_suite" "$test_driver" "$mutant_dir" "$i"
 
+    # Copy the generated test files to subject test directory
+    original_test_driver_path=$(dirname "$test_driver")
+    cp "$mutant_dir/${test_driver_name}Mutant${i}.java" "$original_test_driver_path"
+    cp "$mutant_dir/${test_suite_name}Mutant${i}.java" "$original_test_driver_path"
+
     # Recompile the subject (capture the exit code without stopping on failure)
     echo '> Compiling mutant'
     current_dir=$(pwd)
@@ -120,6 +125,11 @@ while IFS= read -r mutant; do
 
     # Move the mutant class file to the mutant directory
     mv "$class_path" "$mutant_dir/$class_name.java"
+
+    # Remove the generated test files
+    rm -f "$original_test_driver_path/${test_driver_name}Mutant${i}.java"
+    rm -f "$original_test_driver_path/${test_suite_name}Mutant${i}.java"
+
     # Restore the original class file for the next iteration
     cp "$mutants_dir/$class_name.java" "$class_path"
     echo ''
