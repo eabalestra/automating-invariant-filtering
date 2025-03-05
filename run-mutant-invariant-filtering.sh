@@ -56,6 +56,8 @@ echo ''
 python3 scripts/extract_tests_and_mutants.py "$generated_mutants" "$mutants_dir/generated-mutations.txt" "$class_path"
 [ -f "$mutants_dir/compiled-mutations.txt" ] && rm "$mutants_dir/compiled-mutations.txt"
 
+cat $mutants_dir/generated-mutations.txt | sed 's/`//g' | awk '!seen[$0]++' >"$mutants_dir/temp-mutations.txt" && mv "$mutants_dir/temp-mutations.txt" "$mutants_dir/generated-mutations.txt"
+
 # backup the original class
 cp "$class_path" "$mutants_dir"
 
@@ -63,6 +65,7 @@ cp "$class_path" "$mutants_dir"
 i=0
 echo '> Applying mutations'
 while IFS= read -r mutant; do
+    echo ": Mutant: $mutant"
     python3 scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
     mutant_dir="$mutants_dir"/mutants/${i}
     mkdir -p "$mutant_dir"
@@ -72,9 +75,9 @@ while IFS= read -r mutant; do
     python3 scripts/generate_mutant_test_files.py "$mutant" mutant_tests.csv "$test_suite" "$test_driver" "$mutant_dir" $i
 
     # compile files
-    javac -cp "$build_dir/libs/*" -d "$build_dir" "$mutant_dir/$class_name.java" >/dev/null 2>&1
-    javac -cp "libs/junit-4.12.jar:$subject_cp:$build_dir" -d "$build_dir" "$mutant_dir/${test_suite_name}Mutant${i}.java" >/dev/null 2>&1
-    javac -cp "libs/junit-4.12.jar:$subject_cp:$build_dir" -d "$build_dir" "$mutant_dir/${test_driver_name}Mutant${i}.java" >/dev/null 2>&1
+    javac -cp $build_dir/libs/* -g "$mutant_dir/$class_name.java" -d $build_dir >/dev/null 2>&1
+    javac -cp "libs/junit-4.12.jar:$subject_cp:$build_dir" -d "$build_dir" "$mutant_dir/${test_suite_name}Mutant${i}.java"
+    javac -cp "libs/junit-4.12.jar:$subject_cp:$build_dir" -d "$build_dir" "$mutant_dir/${test_driver_name}Mutant${i}.java"
 
     if [ $? -ne 0 ]; then
         rm -rf "$mutant_dir"
@@ -82,7 +85,6 @@ while IFS= read -r mutant; do
         echo "$mutant" >>"$mutants_dir/compiled-mutations.txt"
         i=$((i + 1))
     fi
-
     cp "$mutants_dir/$class_name.java" "$class_path"
 done <"$mutants_dir/generated-mutations.txt"
 echo ''
@@ -98,13 +100,16 @@ rm -f mutant_tests.csv
 echo '> Processing mutants'
 for dir in $mutants_dir/mutants/*/; do
     target_file=$(basename "$class_path")
+    dir2=${dir%*/}
+    number=${dir2##*/}
+    driver_fqname="testers.${test_driver_name}Mutant${number}"
     echo '> Processing mutant: '$dir$target_file
     echo '> Compiling mutant'
     javac -cp $build_dir/libs/* -g $dir$target_file -d $build_dir
     echo '> Mutant compiled'
+    echo "> Performing Dynamic Comparability Analysis from driver: ${driver_fqname}"
+    java -cp "$cp_for_daikon" daikon.DynComp "$driver_fqname"
     echo '> Generating traces with Chicory from mutant'
-    dir2=${dir%*/}
-    number=${dir2##*/}
     java -cp $cp_for_daikon daikon.Chicory --output-dir=daikon-outputs/mutants --comparability-file=$daikon_output_folder/$test_suite_driver_name'.decls-DynComp' --ppt-omit-pattern=$driver_base'.*' --ppt-omit-pattern='org.junit.*' --dtrace-file=$test_suite_driver_name'-llm-m'$number'.dtrace.gz' testers.$test_suite_driver_name daikon-outputs/mutants/$test_suite_driver_name'-llm-m'$number'-objects.xml' >/dev/null 2>&1
     echo ''
 done
