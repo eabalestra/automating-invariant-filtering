@@ -38,7 +38,8 @@ tests_output_dir="$output_dir/test"
 llm_generated_test_suite="$tests_output_dir/${class_name}_${method_name}LlmTest.java"
 
 echo "> Prepare destination for the generated tests"
-python scripts/prepare_destination_test_files.py "$augmented_test_suite" "$augmented_test_driver"
+name_suffix="Augmented"
+python scripts/prepare_destination_test_files.py "$augmented_test_suite" "$augmented_test_driver" $name_suffix
 
 # fix the generated tests
 echo "> Fix the generated tests"
