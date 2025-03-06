@@ -47,9 +47,9 @@ with open(tests_and_mutants_file, 'r') as f:
             else:
                 reading_mutant = False
                 if test != "":
-                    tests.append(test)
+                    tests.append(test.replace("`", ""))
                 if mutant != "":
-                    mutants.append(mutant)
+                    mutants.append(mutant.replace("`", ""))
                 mutant = ""
                 test = ""
 
