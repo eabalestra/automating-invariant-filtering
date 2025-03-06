@@ -34,8 +34,8 @@ class_name = sys.argv[2]
 mutant = sys.argv[3]
 class_file = sys.argv[4]
 
-mutated_line = int(mutant.split(":")[0].strip())
-mutation = mutant.split(":")[1].strip()
+mutated_line = int(mutant.split(":", 1)[0].strip())
+mutation = mutant.split(":", 1)[1].strip()
 
 new_lines = replace_line_of_file(class_file, mutated_line, mutation)
 
