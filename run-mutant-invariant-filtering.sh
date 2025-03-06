@@ -106,29 +106,37 @@ while IFS= read -r mutant; do
     echo '> Compiling mutant'
     current_dir=$(pwd)
     cd "$subject_build_dir" || exit
-    ./gradlew -q -Dskip.tests jar </dev/null
+    ./gradlew -q -Dskip.tests jar </dev/null &>/dev/null
     build_status=$?
     cd "$current_dir" || exit
 
     if [ "$build_status" -ne 0 ]; then
+        echo '> Build failed'
+
+        # Remove the generated test files
+        rm -f "$original_test_driver_path/${test_driver_name}Mutant${i}.java"
+        rm -f "$original_test_driver_path/${test_suite_name}Mutant${i}.java"
+
         rm -rf "$mutant_dir"
     else
+        echo '> Mutant compiled'
+        echo '> Performing Dynamic Comparability Analysis from driver:'
+        # TODO
+
+        echo '> Generating traces with Chicory from mutant'
+        # TODO
+
+        # Move the mutant class file to the mutant directory
+        mv "$class_path" "$mutant_dir/$class_name.java"
+
         echo "$mutant" >>"${mutants_dir}/compiled-mutations.txt"
+
+        # Remove the generated test files
+        rm -f "$original_test_driver_path/${test_driver_name}Mutant${i}.java"
+        rm -f "$original_test_driver_path/${test_suite_name}Mutant${i}.java"
+
         i=$((i + 1))
     fi
-
-    echo '> Performing Dynamic Comparability Analysis from driver:'
-    # TODO
-
-    echo '> Generating traces with Chicory from mutant'
-    # TODO
-
-    # Move the mutant class file to the mutant directory
-    mv "$class_path" "$mutant_dir/$class_name.java"
-
-    # Remove the generated test files
-    rm -f "$original_test_driver_path/${test_driver_name}Mutant${i}.java"
-    rm -f "$original_test_driver_path/${test_suite_name}Mutant${i}.java"
 
     # Restore the original class file for the next iteration
     cp "$mutants_dir/$class_name.java" "$class_path"
