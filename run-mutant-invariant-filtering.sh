@@ -46,6 +46,7 @@ cp_for_daikon="libs/*:$subject_cp"
 # Remove the word driver from test_driver_name
 driver_base=${test_driver_name%Driver}
 driver_base=${driver_base%DriverAugmented}
+driver_package=$(basename "$(dirname "$test_driver")")
 assertions_file_name=$(basename "${assertions_file%.*}")
 
 echo "=> Running mutation-based invariant filtering"
@@ -91,8 +92,10 @@ echo '> Applying mutations'
 while IFS= read -r mutant; do
     echo "> Processing mutant: $mutant"
     python3 scripts/mutate-code.py "$subject_name" "$class_name" "$mutant" "$class_path"
+
+    mutant_driver="${test_driver_name}Mutant${i}"
     mutant_dir="$mutants_dir/mutants/${i}"
-    mkdir -p "$mutant_dir"
+    mkdir -p "$mutant_dir"/daikon
 
     # Generate test files for the mutant
     python3 scripts/generate_mutant_test_files.py "$mutant" mutant_tests.csv "$test_suite" "$test_driver" "$mutant_dir" "$i"
@@ -102,7 +105,7 @@ while IFS= read -r mutant; do
     cp "$mutant_dir/${test_driver_name}Mutant${i}.java" "$original_test_driver_path"
     cp "$mutant_dir/${test_suite_name}Mutant${i}.java" "$original_test_driver_path"
 
-    # Recompile the subject (capture the exit code without stopping on failure)
+    # Compile the mutant class and test files
     echo '> Compiling mutant'
     current_dir=$(pwd)
     cd "$subject_build_dir" || exit
@@ -120,11 +123,21 @@ while IFS= read -r mutant; do
         rm -rf "$mutant_dir"
     else
         echo '> Mutant compiled'
-        echo '> Performing Dynamic Comparability Analysis from driver:'
-        # TODO
+        echo "> Performing Dynamic Comparability Analysis from driver: ""$driver_package.$mutant_driver"
+        java -cp "$cp_for_daikon" daikon.DynComp "$driver_package.$mutant_driver" --output-dir="$mutant_dir/daikon"
 
         echo '> Generating traces with Chicory from mutant'
-        # TODO
+        cmp_file="$mutant_dir/daikon/${mutant_driver}.decls-DynComp"
+        mutant_driver_base=$driver_base'Mutant'$i
+        java -cp "$cp_for_daikon" daikon.Chicory \
+            --output-dir=daikon-outputs/mutants \
+            --comparability-file="$cmp_file" \
+            --ppt-omit-pattern=$mutant_driver_base'.*' \
+            --ppt-omit-pattern='org.junit.*' \
+            --dtrace-file=$mutant_driver'-m'$i'.dtrace.gz' \
+            "$driver_package.$mutant_driver" \
+            daikon-outputs/mutants/$mutant_driver'-m'$i'-objects.xml' \
+            </dev/null &>/dev/null
 
         # Move the mutant class file to the mutant directory
         mv "$class_path" "$mutant_dir/$class_name.java"
@@ -143,7 +156,6 @@ while IFS= read -r mutant; do
     echo ''
 
 done <"$mutants_dir/generated-mutations.txt"
-echo ''
 
 # Restore the original class at the end
 rm "$class_path"
@@ -151,5 +163,11 @@ mv "$mutants_dir/$class_name.java" "$class_path"
 
 # Remove temporary CSV file
 rm -f mutant_tests.csv
+
+# Move the whole mutants folder to the output folder
+mkdir -p $mutants_dir/mutants-traces
+rm -rf $mutants_dir/mutants-traces/*
+mv daikon-outputs/mutants/$driver_base* $mutants_dir/mutants-traces/
+rm -rf daikon-outputs
 
 echo '> Done'
