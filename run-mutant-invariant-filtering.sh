@@ -107,14 +107,11 @@ while IFS= read -r mutant; do
 
     # Compile the mutant class and test files
     echo '> Compiling mutant'
-    current_dir=$(pwd)
-    cd "$subject_build_dir" || exit
-    ./gradlew -q -Dskip.tests jar </dev/null &>/dev/null
+    python3 scripts/compile_mutant.py $subject_build_dir
     build_status=$?
-    cd "$current_dir" || exit
 
     if [ "$build_status" -ne 0 ]; then
-        echo '> Build failed'
+        echo '> Mutant compilation failed'
 
         # Remove the generated test files
         rm -f "$original_test_driver_path/${test_driver_name}Mutant${i}.java"
@@ -123,21 +120,9 @@ while IFS= read -r mutant; do
         rm -rf "$mutant_dir"
     else
         echo '> Mutant compiled'
-        echo "> Performing Dynamic Comparability Analysis from driver: ""$driver_package.$mutant_driver"
-        java -cp "$cp_for_daikon" daikon.DynComp "$driver_package.$mutant_driver" --output-dir="$mutant_dir/daikon"
 
-        echo '> Generating traces with Chicory from mutant'
-        cmp_file="$mutant_dir/daikon/${mutant_driver}.decls-DynComp"
-        mutant_driver_base=$driver_base'Mutant'$i
-        java -cp "$cp_for_daikon" daikon.Chicory \
-            --output-dir=daikon-outputs/mutants \
-            --comparability-file="$cmp_file" \
-            --ppt-omit-pattern=$mutant_driver_base'.*' \
-            --ppt-omit-pattern='org.junit.*' \
-            --dtrace-file=$mutant_driver'-m'$i'.dtrace.gz' \
-            "$driver_package.$mutant_driver" \
-            daikon-outputs/mutants/$mutant_driver'-m'$i'-objects.xml' \
-            </dev/null &>/dev/null
+        # Generate the mutant trace
+        python3 scripts/daikon_mutant_trace_generator.py $cp_for_daikon $driver_package $mutant_driver $mutant_dir $driver_base $i
 
         # Move the mutant class file to the mutant directory
         mv "$class_path" "$mutant_dir/$class_name.java"
