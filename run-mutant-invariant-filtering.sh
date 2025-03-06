@@ -19,6 +19,7 @@ assertions_file="$SPECS_DIR/$subject_name/output/${class_name}-${method_name}-sp
 invs_by_mutants="$SPECS_DIR/$subject_name/output/${class_name}-${method_name}-specfuzzer-1-invs-by-mutants.csv"
 test_suite=$(find "$subject_root/src/test/java" -type f -name "$test_suite_name".java)
 test_driver=$(find "$subject_root/src/test/java" -type f -name "$test_driver_name".java)
+invs_file=$SPECS_DIR/$subject_name/output/${class_name}-${method_name}-specfuzzer-1.inv.gz
 
 # Find the build file by traversing upward from the class file location
 build_file_dir=""
@@ -63,6 +64,10 @@ mutants_dir="$automating_if_subject_dir/mutations"
 daikon_output_folder="$automating_if_subject_dir/daikon"
 mkdir -p "$assertions_dir"
 mkdir -p "$mutants_dir/mutants"
+
+# Prepare files
+rm -f data/invs-by-mutants.csv
+cp data/base-invs-by-mutants.csv invs-by-mutants.csv
 
 # Get the non-mutant killing assertions
 echo "> Computing non-mutant killing assertions"
@@ -154,5 +159,25 @@ mkdir -p $mutants_dir/mutants-traces
 rm -rf $mutants_dir/mutants-traces/*
 mv daikon-outputs/mutants/$driver_base* $mutants_dir/mutants-traces/
 rm -rf daikon-outputs
+
+echo '> Mutation Analysis'
+i=0
+for mutant_dtrace in $mutants_dir'/mutants-traces/'$test_driver_name*.dtrace.gz; do
+    mutant_objects_file=$mutants_dir"/mutants-traces/"$test_driver_name'Mutant'$i"-m${i}-objects.xml"
+
+    echo 'checking invariants on mutant:' $i
+    echo 'trace: '$mutant_dtrace
+    echo 'objects: '$mutant_objects_file
+    java -Xmx8g -cp "$cp_for_daikon" daikon.tools.InvariantChecker \
+        --conf \
+        --serialiazed-objects $mutant_objects_file \
+        $invs_file \
+        $mutant_dtrace \
+        >/dev/null 2>&1
+
+    python3 scripts/single-mutant-result.py invs.csv 1 $mutant_dtrace
+    i=$((i + 1))
+    echo ''
+done
 
 echo '> Done'
