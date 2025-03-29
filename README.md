@@ -59,7 +59,7 @@ Follow these steps to set up the tool on your system:
    pip install -r requirements.txt
    ```
 
-5. **Set Up Ollama Models:**
+5. **Set Up Models:**
 
    - Create the test generation model:
 
@@ -73,7 +73,7 @@ Follow these steps to set up the tool on your system:
    ollama create mutant-generation-model -f mutgen/Modelfile
    ```
 
-**Note:** Keep the Ollama models running while using the tool.
+**Note:** Keep the models running while using the tool.
 
 ```bash
 ollama run test-generation-model
@@ -169,7 +169,7 @@ Here’s a practical example using a hypothetical `QueueAr` class with the `getF
 
 ## Notes
 
-- Ensure Ollama models are running while executing the scripts.
+- Ensure models are running while executing the scripts.
 - Verify environment variable paths if you encounter issues.
 - For additional details on Ollama, visit the official [Ollama GitHub repository](https://github.com/ollama/ollama).
 - Familiarity with [Specfuzzer](https://github.com/facumolina/specfuzzer) may enhance your understanding of this tool.
