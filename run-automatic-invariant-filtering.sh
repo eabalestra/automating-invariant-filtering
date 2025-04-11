@@ -19,6 +19,23 @@ echo "Spec file: $(basename "$spec_file")"
 echo "Test suite: $(basename "$test_suite")"
 echo "Test driver: $(basename "$test_driver")"
 
+if [[ ! -f "$class_path" ]]; then
+    echo "Error: Class file $class_path not found!"
+    exit 1
+fi
+if [[ ! -f "$spec_file" ]]; then
+    echo "Error: Spec file $spec_file not found!"
+    exit 1
+fi
+if [[ ! -f "$test_suite" ]]; then
+    echo "Error: Test suite file $test_suite not found!"
+    exit 1
+fi
+if [[ ! -f "$test_driver" ]]; then
+    echo "Error: Test driver file $test_driver not found!"
+    exit 1
+fi
+
 # create the output folder
 output_dir="output/${class_name}_${method_name}"
 mkdir -p "$output_dir"
