@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source scripts/init_env.sh
+source venv/bin/activate
+
 [ -z "$SUBJECTS_DIR" ] && {
     echo "> The environment variable SUBJECTS_DIR is not set"
     exit 1
