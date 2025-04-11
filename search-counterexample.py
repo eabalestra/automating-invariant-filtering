@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 from testgen import test_generator
 from scripts import assertion_remover, spec_processor, spec_reader, test_extractor, code_extractor
 
@@ -17,7 +18,8 @@ likely_valid_specs = spec_reader.read_and_filter_specs(specs_file)
 # create the output file
 output_test_dir = os.path.join(output_dir, "test")
 os.makedirs(output_test_dir, exist_ok=True)
-generated_test_suite = os.path.join(output_test_dir, f"{class_name}_{method_name}LlmTest.java")
+generated_test_suite = os.path.join(
+    output_test_dir, f"{class_name}_{method_name}LlmTest.java")
 
 # timestamp log
 llm_test_timestamp = os.path.join(output_test_dir, "timestamps.log")
