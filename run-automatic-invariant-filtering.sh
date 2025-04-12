@@ -7,7 +7,7 @@ subject_name=$1
 class_name=$2
 method_name=$3
 class_path=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$class_name".java)
-spec_file="$SPECS_DIR/$subject_name/output/$class_name-$method_name-specfuzzer-1.assertions"
+spec_file="$SPECS_DIR/$subject_name/output/$class_name-$method_name-specfuzzer-1-buckets.assertions"
 test_suite_name=$4
 test_suite=$(find "$SUBJECTS_DIR/$subject_name/src/test/java" -type f -name "$test_suite_name".java)
 test_driver_name=$5
@@ -72,6 +72,6 @@ llm_compilable_test_suite="$tests_output_dir/${class_name}_${method_name}LlmComp
 echo "> Append the generated tests to the existing test suite" | tee -a "$log_file"
 python scripts/append_llm_tests.py "$augmented_test_suite" "$augmented_test_driver" "$llm_compilable_test_suite" "$class_path" "$method_name" >>"$log_file" 2>&1
 
-echo "> Done"
+echo "> Done" | tee -a "$log_file"
 echo "Output is saved in $output_dir"
 echo "Log is saved in $log_file"
