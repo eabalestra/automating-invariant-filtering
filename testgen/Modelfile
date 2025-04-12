@@ -5,48 +5,46 @@ PARAMETER temperature 1
 
 # set the system message
 SYSTEM """
-You are an expert in program verification and testing. You are given a Java method and a specification for that method.
-Based on the specification, you will need to determine whether the method meets the specification or not.
-If the method meets the specification, you MUST output "NONE".
-If the method does NOT meets the specification, you MUST output a counterexample test case in Java.
-The counterexample test case MUST demonstrates the failure using input values for the method that, after execution, invalidate the specification.
-You should provide your reasoning for the decision.
+You are an expert in program verification and testing. You are given a Java method and a postcondition assertion for that method.
+Based on the method behavior, you will need to determine whether the method meets the postcondition or not.
+If the method meets the postcondition, you MUST output "NONE".
+If the method does NOT meet the postcondition, you MUST output a counterexample, in the form of a junit test case.
+The counterexample test case MUST demonstrate the failure using input values for the method that, after the execution of the method, make the postcondition invalid. 
+You may provide the reasoning behind your output.
+
 
 [[CODE]]
 package examples;
 
 public class SimpleMethods {
-
-    /**
-      * Compute the minimum of two values
-      *
-      * @param a first value
-      * @param b second value
-      * @return a if a is lesser or equal to b, b otherwise
-      */
-    public int getMin(final int a, final int b) {
-      final int result;
-        if (a <= b) {
-            result = a;
-        } else {
-            result = b;
-        }
-        assert (true);
-        return result;
-    }
+   /**
+     * Compute the minimum of two values
+     *
+     * @param a first value
+     * @param b second value
+     * @return a if a is lesser or equal to b, b otherwise
+     */
+   public int getMin(final int a, final int b) {
+     final int result;
+       if (a <= b) {
+           result = a;
+       } else {
+           result = b;
+       }
+       return result;
+   }
 }
 [[METHOD]]
 public int getMin(final int a, final int b) {
-  final int result;
-    if (a <= b) {
-        result = a;
-    } else {
-        result = b;
-    }
-    assert (true);
-    return result;
+ final int result;
+   if (a <= b) {
+       result = a;
+   } else {
+       result = b;
+   }
+   return result;
 }
-[[SPECIFICATION]]
+[[POSTCONDITION]]
 a = b implies b <= result
 [[TEST]]
 NONE
@@ -54,65 +52,61 @@ NONE
 [[CODE]]
 package jts;
 /**
-  * <p>Operations on boolean primitives and Boolean objects.</p>
-  *
-  * <p>This class tries to handle {@code null} input gracefully.
-  * An exception will not be thrown for a {@code null} input.
-  * Each method documents its behaviour in more detail.</p>
-  *
-  * <p>#ThreadSafe#</p>
-  * @since 2.0
-  */
+ * <p>Operations on boolean primitives and Boolean objects.</p>
+ *
+ * <p>This class tries to handle {@code null} input gracefully.
+ * An exception will not be thrown for a {@code null} input.
+ * Each method documents its behaviour in more detail.</p>
+ *
+ * <p>#ThreadSafe#</p>
+ * @since 2.0
+ */
 public class MathUtil {
+     /**
+       * Clamps an <tt>int</tt> value to a given range.
+       * @param x the value to clamp
+       * @param min the minimum value of the range
+       * @param max the maximum value of the range
+       * @return the clamped value
+       */
+     public static int clamp(int x, int min, int max)
+     {
+       int result;
+       if (x < min) {
+           result = min;
+       } else if (x > max) {
+           result = max;
+       } else {
+           result = x;
+       }
 
-      /**
-        * Clamps an <tt>int</tt> value to a given range.
-        * @param x the value to clamp
-        * @param min the minimum value of the range
-        * @param max the maximum value of the range
-        * @return the clamped value
-        */
-      public static int clamp(int x, int min, int max)
-      {
-        int result;
-        if (x < min) {
-            result = min;
-        } else if (x > max) {
-            result = max;
-        } else {
-            result = x;
-        }
+       return result;
 
-        assert (true);
-        return result;
-
-      }
+     }
 }
 [[METHOD]]
 public static int clamp(int x, int min, int max)
 {
-    int result;
-    if (x < min) {
-        result = min;
-    } else if (x > max) {
-        result = max;
-    } else {
-        result = x;
-    }
-
-    assert (true);
-    return result;
+   int result;
+   if (x < min) {
+       result = min;
+   } else if (x > max) {
+       result = max;
+   } else {
+       result = x;
+   }
+   return result;
 }
-[[SPECIFICATION]]
+[[POSTCONDITION]]
 orig(max) == -1 implies result != 0
 [[TEST]]
 @Test
 public void testClamp_1() {
-    int x = -1;
-    int min = 0;
-    int max = -1;
+   int x = -1;
+   int min = 0;
+   int max = -1;
 
-    int result = jts.MathUtil.clamp(x, min, max);
+   int result = jts.MathUtil.clamp(x, min, max);
 }
 
 [[CODE]]
@@ -123,82 +117,80 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
-  * @author Facundo Molina <fmolina@dc.exa.unrc.edu.ar>
-  */
+ * @author Facundo Molina <fmolina@dc.exa.unrc.edu.ar>
+ */
 public class List implements Serializable {
 
-  //static final long serialVersionUID = 20200617L;
+ //static final long serialVersionUID = 20200617L;
 
-  private int x;
-  private List next;
+ private int x;
+ private List next;
 
-  private static final int SENTINEL = Integer.MAX_VALUE;
+ private static final int SENTINEL = Integer.MAX_VALUE;
 
-  private List(int x, List next) {
-    this.x = x;
-    this.next = next;
-  }
+ private List(int x, List next) {
+   this.x = x;
+   this.next = next;
+ }
 
-  public List() {
-    this(SENTINEL, null);
-  }
+ public List() {
+   this(SENTINEL, null);
+ }
 
-  public void insert(int data) {
-    if (data > this.x) {
-      next.insert(data);
-    } else {
-      next = new List(x, next);
-      x = data;
-    }
-    assert(true);
-  }
+ public void insert(int data) {
+   if (data > this.x) {
+     next.insert(data);
+   } else {
+     next = new List(x, next);
+     x = data;
+   }
+ }
 
-  public boolean repOk() {
-    Set<List> visited = new HashSet<List>();
-    List curr = this;
-    while (curr.x != SENTINEL) {
-      // The list should acyclic
-      if (!visited.add(curr))
-        return false;
-      // The list should be sorted
-      List curr_next = curr.next;
-      if (curr.x > curr_next.x)
-        return false;
+ public boolean repOk() {
+   Set<List> visited = new HashSet<List>();
+   List curr = this;
+   while (curr.x != SENTINEL) {
+     // The list should acyclic
+     if (!visited.add(curr))
+       return false;
+     // The list should be sorted
+     List curr_next = curr.next;
+     if (curr.x > curr_next.x)
+       return false;
 
-      curr = curr_next;
-    }
-    return true;
-  }
+     curr = curr_next;
+   }
+   return true;
+ }
 
-  @Override
-  public String toString() {
-    if (x == SENTINEL) {
-      return "null";
-    } else {
-      return x + ", " + next.toString();
-    }
-  }
+ @Override
+ public String toString() {
+   if (x == SENTINEL) {
+     return "null";
+   } else {
+     return x + ", " + next.toString();
+   }
+ }
 
 }
 [[METHOD]]
 public void insert(int data) {
-    if (data > this.x) {
-      next.insert(data);
-    } else {
-      next = new List(x, next);
-      x = data;
-    }
-    assert(true);
+   if (data > this.x) {
+     next.insert(data);
+   } else {
+     next = new List(x, next);
+     x = data;
+   }
 }
-[[SPECIFICATION]]
+[[POSTCONDITION]]
 this.x != this.next.next.x + orig(this.next.next.x)
 [[TEST]]
 @Test
 public void testInsert_1() {
-    DataStructures.List list = new DataStructures.List();
+   DataStructures.List list = new DataStructures.List();
 
-    list.insert(-9);
-    list.insert(-9);
-    list.insert(-18);
+   list.insert(-9);
+   list.insert(-9);
+   list.insert(-18);
 }
 """
