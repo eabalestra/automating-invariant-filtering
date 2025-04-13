@@ -13,8 +13,9 @@ target_class_fqname="$2"
 class_name="${target_class_fqname##*.}"
 target_class=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$class_name".java)
 method="$3"
+# TODO: this invs file is the same after bucketing?
 invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
-assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.assertions"
+assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1-buckets.assertions"
 
 test_class_name="${class_name}Tester"
 driver_name="${test_class_name}Driver"
@@ -23,10 +24,12 @@ driver_fqname="testers.${test_suite_driver}"
 
 # Output files
 OUTPUT_FOLDER="output"
-subject_dir="$OUTPUT_FOLDER/${class_name}_${method}"
-daikon_output_folder="$subject_dir/daikon"
-specs_output_folder="$subject_dir/specs"
+output_dir="$OUTPUT_FOLDER/${class_name}_${method}"
+daikon_output_folder="$output_dir/daikon"
+specs_output_folder="$output_dir/specs"
 interest_specs_file="$specs_output_folder/interest-specs.csv"
+
+log_file="$output_dir/${class_name}_${method}-second-round-validation.log"
 
 # Prepare files
 mkdir -p "$daikon_output_folder"
@@ -54,21 +57,42 @@ subject_cp="$subject_sources/build/libs/*"
 cp_for_daikon="libs/*:$subject_cp"
 
 # Run script
-echo "==> Running second round validation for $target_class"
-echo "- Class: $class_name"
-echo "- Method: $method"
-echo "- Invariants file: $invs_file"
-echo "- Assertions file: $assertions_file"
+echo "==> Running second round validation for $target_class" | tee -a "$log_file"
+echo "Class: $class_name" | tee -a "$log_file"
+echo "Method: $method" | tee -a "$log_file"
+echo "Invariants file: $invs_file" | tee -a "$log_file"
+echo "Assertions file: $assertions_file" | tee -a "$log_file"
+
+if [[ ! -f "$target_class" ]]; then
+    echo "Error: Class file $target_class not found!"
+    exit 1
+fi
+if [[ ! -f "$invs_file" ]]; then
+    echo "Error: Invariants file $invs_file not found!"
+    exit 1
+fi
+if [[ ! -f "$assertions_file" ]]; then
+    echo "Error: Assertions file $assertions_file not found!"
+    exit 1
+fi
+if [[ ! -f "$subject_sources/$test_class_name.java" ]]; then
+    echo "Error: Test class file $subject_sources/$test_class_name.java not found!"
+    exit 1
+fi
+if [[ ! -f "$subject_sources/$test_suite_driver.java" ]]; then
+    echo "Error: Test driver file $subject_sources/$test_suite_driver.java not found!"
+    exit 1
+fi
 
 # Recompile the subject
-echo "> Recompiling subject: $target_class"
+echo "> Recompiling subject: $target_class" | tee -a "$log_file"
 current_dir=$(pwd)
 cd "$subject_sources" || exit
 ./gradlew -q -Dskip.tests jar
 cd "$current_dir" || exit
 
 # Perform the Dynamic Comparability Analysis
-echo '> Performing Dynamic Comparability Analysis from driver: '"$test_suite_driver"
+echo '> Performing Dynamic Comparability Analysis from driver: '"$test_suite_driver" | tee -a "$log_file"
 java -cp "$cp_for_daikon" daikon.DynComp "$driver_fqname" --output-dir="$daikon_output_folder"
 
 # Run Chicory on the existing testsuite to create the valid trace
@@ -80,10 +104,10 @@ java -cp "$cp_for_daikon" daikon.Chicory \
     --comparability-file="$cmp_file" \
     --ppt-omit-pattern="${test_suite_driver}.*" \
     "$driver_fqname" \
-    "$objects_file"
+    "$objects_file" >>"$log_file" 2>&1
 
 # Run Daikon Invariant Checker to validate the invariants
-echo '> Running Daikon Invariant Checker from driver: '"$test_suite_driver"
+echo '> Running Daikon Invariant Checker from driver: '"$test_suite_driver" | tee -a "$log_file"
 dtrace_file="$daikon_output_folder/${test_suite_driver}.dtrace.gz"
 java -Xmx8g -cp "$cp_for_daikon" daikon.tools.InvariantChecker \
     --conf \
@@ -96,12 +120,12 @@ mv invs.csv "$daikon_output_folder"
 rm invs_file.xml
 
 # Save the specfications of interest, i.e., the postconditions or object invariants
-echo "> Saving invariants of interest"
-python3 scripts/filter_invariants_of_interest.py "$daikon_output_folder/invs.csv" "$target_class_fqname" "$method"
+echo "> Saving invariants of interest" | tee -a "$log_file"
+python3 scripts/filter_invariants_of_interest.py "$daikon_output_folder/invs.csv" "$target_class_fqname" "$method" >>"$log_file" 2>&1
 
 # Extract the assertions that are not discarded by the invariant checker
-echo "> Extracting non-filtered assertions"
-python3 scripts/extract_non_filtered_assertions.py "$assertions_file" "$interest_specs_file" "$class_name" "$method"
+echo "> Extracting non-filtered assertions" | tee -a "$log_file"
+python3 scripts/extract_non_filtered_assertions.py "$assertions_file" "$interest_specs_file" "$class_name" "$method" >>"$log_file" 2>&1
 
-echo "> Done"
-echo "Output is saved in ${subject_dir}"
+echo "> Done" | tee -a "$log_file"
+echo "Output is saved in ${output_dir}"
