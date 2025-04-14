@@ -75,14 +75,6 @@ if [[ ! -f "$assertions_file" ]]; then
     echo "Error: Assertions file $assertions_file not found!"
     exit 1
 fi
-if [[ ! -f "$subject_sources/$test_class_name.java" ]]; then
-    echo "Error: Test class file $subject_sources/$test_class_name.java not found!"
-    exit 1
-fi
-if [[ ! -f "$subject_sources/$test_suite_driver.java" ]]; then
-    echo "Error: Test driver file $subject_sources/$test_suite_driver.java not found!"
-    exit 1
-fi
 
 # Recompile the subject
 echo "> Recompiling subject: $target_class" | tee -a "$log_file"
