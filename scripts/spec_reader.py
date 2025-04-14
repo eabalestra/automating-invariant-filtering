@@ -2,7 +2,7 @@ from re import search
 
 
 def is_inv_line(line: str) -> bool:
-    return not (search(":::OBJECT", line) or search("==============", line) or search(":::POSTCONDITION", line) or search(":::ENTER", line))
+    return not (search(":::OBJECT", line) or search("==============", line) or search(":::POSTCONDITION", line) or search(":::ENTER", line) or search("buckets=", line) or search("specs=", line))
 
 
 def read_and_filter_specs(file_path: str) -> set:
