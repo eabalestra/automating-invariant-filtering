@@ -1,4 +1,18 @@
 # You can edit this file to add or remove subjects to run.
+simple-examples_getMin examples.SimpleMethods getMin
+simple-examples_abs examples.SimpleMethods abs
+simple-examples_addElementToSet examples.SimpleMethods addElementToSet
+simple-examples_incrementNumberAtIndex examples.SimpleMethods incrementNumberAtIndex
+StackAr_makeEmpty DataStructures.StackAr makeEmpty
+StackAr_pop DataStructures.StackAr pop
+StackAr_push DataStructures.StackAr push
+StackAr_top DataStructures.StackAr top
+StackAr_topAndPop DataStructures.StackAr topAndPop
+QueueAr_makeEmpty DataStructures.QueueAr makeEmpty
+QueueAr_dequeue DataStructures.QueueAr dequeue
+QueueAr_dequeueAll DataStructures.QueueAr dequeueAll
+QueueAr_enqueue DataStructures.QueueAr enqueue
+QueueAr_getFront DataStructures.QueueAr getFront
 ArithmeticUtils_subAndCheck org.apache.commons.math3.util.ArithmeticUtilsNew subAndCheck
 FastMathNew_floor org.apache.commons.math3.util.FastMathNew floor
 MathUtilsNew_copySignInt org.apache.commons.math3.util.MathUtilsNew copySignInt
@@ -19,6 +33,7 @@ ringbuffer_extend examples.RingBuffer extend
 ringbuffer_item examples.RingBuffer item
 ringbuffer_remove examples.RingBuffer remove
 ringbuffer_wipeOut examples.RingBuffer wipeOut
+polyupdate_a1 examples.Polyupdate a1
 polyupdate_sm examples.Polyupdate sm
 structure_foo examples.Structure foo
 structure_setX examples.Structure setX
