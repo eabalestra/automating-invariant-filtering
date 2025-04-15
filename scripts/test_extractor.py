@@ -9,9 +9,16 @@ def extract_test_with_comments_from_string(text: str) -> str:
 
 
 def extract_tests_from_file(source_test_file: str) -> List[str]:
-    with open(source_test_file, "r", encoding='utf-8') as sf:
-        content = sf.read()
-    return parse_test_from_string(content)
+    try:
+        with open(source_test_file, "r", encoding='utf-8') as sf:
+            content = sf.read()
+        return parse_test_from_string(content)
+    except FileNotFoundError:
+        print(f"File not found: {source_test_file}")
+        return []
+    except Exception as e:
+        print(f"Error reading file {source_test_file}: {e}")
+        return []
 
 
 def parse_comments_and_test(lines: List[str]) -> Tuple[List[str], List[str]]:
