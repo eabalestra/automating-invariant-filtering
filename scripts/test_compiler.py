@@ -19,7 +19,7 @@ public class TestClass {{
 """
 
 
-def compile_java_files(javac_command: List[str]) -> bool:
+def compile_java_files(javac_command: List[str]) -> tuple[bool, str]:
     try:
         result = subprocess.run(
             javac_command,
@@ -27,9 +27,9 @@ def compile_java_files(javac_command: List[str]) -> bool:
             capture_output=True,
             text=True
         )
-        return result.returncode == 0
-    except subprocess.CalledProcessError:
-        return False
+        return True, ""
+    except subprocess.CalledProcessError as e:
+        return False, e.stderr
 
 
 def cleanup_files(*file_paths: str) -> None:
@@ -38,7 +38,7 @@ def cleanup_files(*file_paths: str) -> None:
             os.remove(file_path)
 
 
-def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) -> bool:
+def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) -> tuple[bool, str]:
     test_suite_package = extract_package_path(test_suite)
     test_suite_directory = os.path.dirname(test_suite)
 
@@ -64,7 +64,11 @@ def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) 
 
 def get_compilable_tests(compilation_target_suite: str, target_class: str, test_candidates: List[str]) -> List[str]:
     compiled_tests = []
-    for test in test_candidates:
-        if check_if_test_compiles(compilation_target_suite, target_class, test):
+    for i, test in enumerate(test_candidates):
+        success, error_msg = check_if_test_compiles(
+            compilation_target_suite, target_class, test)
+        if success:
             compiled_tests.append(test)
+        else:
+            print(f"Test {i+1} failed to compile with error:\n{error_msg}")
     return compiled_tests
