@@ -78,6 +78,7 @@ def update_specification_variables(specification: str, class_name: str) -> str:
                 processed_spec = processed_spec.replace(
                     match.group(0), var.strip())
 
+    processed_spec = processed_spec.replace("daikon.Quant.", "")
     processed_spec = processed_spec.replace("orig(", r"\old(")
     processed_spec = processed_spec.replace("\\", "")
     return strip_outer_parentheses(processed_spec).strip()
