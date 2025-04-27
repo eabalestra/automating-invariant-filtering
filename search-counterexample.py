@@ -56,6 +56,8 @@ with open(generated_test_suite, 'a') as f:
             final_test = test_extractor.extract_test_with_comments_from_string(
                 assertion_free_test)
 
+            # Add two differents formats of the spec to the test
+            final_test = add_spec_to_test(final_test, spec)
             final_test = add_spec_to_test(final_test, processed_spec)
 
             # save response to a file in the output directory
