@@ -1,7 +1,7 @@
 import glob
 import os
 import subprocess
-from typing import List
+from typing import List, Tuple
 
 from code_extractor import extract_package_path
 from append_llm_tests import append_test_method_to_file
@@ -19,7 +19,7 @@ public class TestClass {{
 """
 
 
-def compile_java_files(javac_command: List[str]) -> tuple[bool, str]:
+def compile_java_files(javac_command: List[str]) -> Tuple[bool, str]:
     try:
         result = subprocess.run(
             javac_command,
@@ -38,7 +38,7 @@ def cleanup_files(*file_paths: str) -> None:
             os.remove(file_path)
 
 
-def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) -> tuple[bool, str]:
+def check_if_test_compiles(test_suite: str, subject_class: str, unit_test: str) -> Tuple[bool, str]:
     test_suite_package = extract_package_path(test_suite)
     test_suite_directory = os.path.dirname(test_suite)
 
