@@ -24,11 +24,9 @@ subject_name=$2
 target_class_fqname=$3
 method_name=$4
 
-LIGHT_BLUE="\033[94m"
-BOLD="\033[1m"
-RESET="\033[0m"
-
-echo "${LIGHT_BLUE}${BOLD}Running automatic invariant filtering for $target_class_fqname::$method_name${RESET}"
+echo ""
+echo "Running tool for $target_class_fqname::$method_name"
+echo ""
 
 if [ "$1" = "--llm-test-aug" ]; then
     class_name="${target_class_fqname##*.}"

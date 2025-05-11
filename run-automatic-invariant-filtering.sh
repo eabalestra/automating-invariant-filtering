@@ -13,11 +13,11 @@ test_suite=$(find "$SUBJECTS_DIR/$subject_name/src/test/java" -type f -name "$te
 test_driver_name=$5
 test_driver=$(find "$SUBJECTS_DIR/$subject_name/src/test/java" -type f -name "$test_driver_name".java)
 
-echo "==> Running automatic invariant filtering"
-echo "Class: $(basename "$class_path")"
-echo "Spec file: $(basename "$spec_file")"
-echo "Test suite: $(basename "$test_suite")"
-echo "Test driver: $(basename "$test_driver")"
+echo "### Running automatic invariant filtering"
+echo "# Class: $(basename "$class_path")"
+echo "# Spec file: $(basename "$spec_file")"
+echo "# Test suite: $(basename "$test_suite")"
+echo "# Test driver: $(basename "$test_driver")"
 
 if [[ ! -f "$class_path" ]]; then
     echo "Error: Class file $class_path not found!"
