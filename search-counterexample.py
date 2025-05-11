@@ -5,11 +5,18 @@ from testgen import test_generator
 from scripts import assertion_remover, spec_processor, spec_reader, test_extractor, code_extractor
 
 
-def add_spec_to_test(test_code, spec):
-    # Add the specification to end of the test code
-    test_code = test_code.replace(
-        "}", "\n    // Specification: " + spec + "\n}")
-    return test_code
+def add_spec_to_test(code, spec_str):
+    try:
+        opening_brace_index = code.index('{')
+    except ValueError:
+        return code
+
+    specification_comment = "\n    // Spec: " + spec_str
+    code_before_brace = code[:opening_brace_index + 1]
+    code_after_brace = code[opening_brace_index + 1:]
+    modified_code = code_before_brace + specification_comment + code_after_brace
+
+    return modified_code
 
 
 # Load file and arguments
