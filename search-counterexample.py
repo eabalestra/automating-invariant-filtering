@@ -6,14 +6,17 @@ from scripts import spec_processor, spec_reader, test_extractor, code_extractor
 
 
 def add_spec_to_test(code, spec_str):
-    try:
-        opening_brace_index = code.index('{')
-    except ValueError:
+    test_method_start = code.find("@Test")
+    if test_method_start == -1:
+        return code
+
+    method_body_start = code.find("{", test_method_start)
+    if method_body_start == -1:
         return code
 
     specification_comment = "\n    // Spec: " + spec_str
-    code_before_brace = code[:opening_brace_index + 1]
-    code_after_brace = code[opening_brace_index + 1:]
+    code_before_brace = code[:method_body_start + 1]
+    code_after_brace = code[method_body_start + 1:]
     modified_code = code_before_brace + specification_comment + code_after_brace
 
     return modified_code
