@@ -115,3 +115,11 @@ def transform_specification(specification: str) -> str:
         return f'({first}) == ({second})'
 
     return spec
+
+
+def remove_assertions_from_test(test_code: str) -> str:
+    assertion_regex = re.compile(
+        r'^\s*(?:[a-zA-Z0-9_.]+\.)?(?:assert\w*\b.*?;|fail\w*\b.*?;).*$',
+        re.MULTILINE | re.IGNORECASE
+    )
+    return re.sub(assertion_regex, '', test_code)

@@ -2,7 +2,7 @@ import sys
 import os
 import time
 from testgen import test_generator
-from scripts import assertion_remover, spec_processor, spec_reader, test_extractor, code_extractor
+from scripts import spec_processor, spec_reader, test_extractor, code_extractor
 
 
 def add_spec_to_test(code, spec_str):
@@ -58,7 +58,7 @@ with open(generated_test_suite, 'a') as f:
             log.write(
                 f"Time taken for LLM response for {spec}: {elapsed_time:.4f} sec\n")
 
-            assertion_free_test = assertion_remover.strip_assertions_from_test_code(
+            assertion_free_test = spec_processor.remove_assertions_from_test(
                 generated_test)
             final_test = test_extractor.extract_test_with_comments_from_string(
                 assertion_free_test)
