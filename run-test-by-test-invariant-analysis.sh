@@ -109,6 +109,47 @@ for test_file in "$test_files_path"/*; do
 
     # Create the driver file
     driver_file_name="${test_files_path}/${test_name}TesterDriver.java"
+    {
+        echo "package testers;"
+        echo ""
+        echo "public class ${test_name}TesterDriver {"
+        echo ""
+        echo "    public static void main(String... args) {"
+        echo "        boolean hadFailure = false;"
+        echo "        ${test_name}Tester t0 = new ${test_name}Tester();"
+        echo "        try {"
+        echo "            t0.${test_name}();"
+        echo "        } catch (Throwable e) {"
+        echo "            hadFailure = true;"
+        echo "            e.printStackTrace();"
+        echo "        }"
+        echo "        if (hadFailure) {"
+        echo "            System.exit(1);"
+        echo "        }"
+        echo "    }"
+        echo "}"
+    } >>"$driver_file_name"
+
+    # Compile the test file
+    echo "Compiling test file: $tester_file_name" | tee -a "$log_file"
+    javac -cp "$cp_for_daikon" "$tester_file_name" "$driver_file_name" -d "$tests_dir"
+    if [ $? -ne 0 ]; then
+        echo "Error: Compilation failed for $tester_file_name" | tee -a "$log_file"
+        continue
+    fi
+
+    # Perform the Dynamic Comparability Analysis
+    echo "Performing Dynamic Comparability Analysis from driver: $driver_file_name" | tee -a "$log_file"
+    java -cp "$cp_for_daikon":"$tests_dir" daikon.DynComp "testers.${test_name}TesterDriver" --output-dir="$specs_per_test_dir"
+    if [ $? -ne 0 ]; then
+        echo "Error: Daikon analysis failed for $test_file" | tee -a "$log_file"
+        continue
+    fi
+
+    # Run Chicory on the existing testsuite to create the valid trace
+    echo "Running Chicory on the existing testsuite to create the valid trace" | tee -a "$log_file"
+
+    echo ''
 done
 
 echo "> Completed test-by-test specification analysis" | tee -a "$log_file"
