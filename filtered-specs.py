@@ -1,6 +1,7 @@
 import sys
 import os
 from subprocess import call
+from scripts import spec_processor
 
 call("./scripts/init_env.sh", shell=True)
 
@@ -28,6 +29,7 @@ with open(refined_specs_file) as f:
 
 filtered_specs = set(orig_specs) - set(refined_specs)
 
+print(f'orig_specs={len(orig_specs)}')
 print(f'filtered_specs={len(filtered_specs)}')
 for s in filtered_specs:
-    print(s)
+    print(spec_processor.update_specification_variables(s, cls))
