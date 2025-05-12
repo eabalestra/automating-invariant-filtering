@@ -72,13 +72,43 @@ cp_for_daikon="libs/*:$subject_cp"
 # Find compilable test files
 llm_compilable_test_file=$(find "$tests_dir" -name "*LlmCompilableTest.java" | sort)
 
+# Check if the test file exists
 test_files_path="$tests_dir/tests"
+if [ -d "$test_files_path" ]; then
+    rm -rf "$test_files_path"
+fi
 mkdir -p "$test_files_path"
+
+# Split the test suite into individual test files
 python3 scripts/test_splitter.py "$llm_compilable_test_file" "$test_files_path"
 
+# Run Daikon on the test files
 for test_file in "$test_files_path"/*; do
     echo "> Processing test file: $test_file" | tee -a "$log_file"
     test_name=$(basename "$test_file" .txt)
+
+    # Create the test file
+    tester_file_name="${test_files_path}/${test_name}Tester.java"
+
+    {
+        echo "package testers;"
+        echo ""
+        echo "import org.junit.FixMethodOrder;"
+        echo "import org.junit.Test;"
+        echo "import org.junit.runners.MethodSorters;"
+        echo ""
+        echo "@FixMethodOrder(MethodSorters.NAME_ASCENDING)"
+        echo "public class ${test_name}Tester {"
+        echo ""
+        echo "    public static boolean debug = false;"
+        echo ""
+        cat "$test_file"
+        echo ""
+        echo "}"
+    } >>"$tester_file_name"
+
+    # Create the driver file
+    driver_file_name="${test_files_path}/${test_name}TesterDriver.java"
 done
 
 echo "> Completed test-by-test specification analysis" | tee -a "$log_file"
