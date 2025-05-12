@@ -1,0 +1,85 @@
+#!/bin/bash
+# Script to analyze which specifications are filtered by each individual test
+
+source scripts/init_env.sh
+source venv/bin/activate
+
+[ -z "$DAIKONDIR" ] && {
+    echo "> The environment variable DAIKONDIR is not set"
+    exit 1
+}
+
+# Arguments
+subject_name=$1
+target_class_fqname="$2"
+class_name="${target_class_fqname##*.}"
+target_class=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$class_name".java)
+method="$3"
+invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
+assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1-buckets.assertions"
+
+# Output structure
+OUTPUT_FOLDER="output"
+subject_output_dir="$OUTPUT_FOLDER/${class_name}_${method}"
+tests_dir="$subject_output_dir/test"
+specs_per_test_dir="$tests_dir/specs_per_test"
+log_file="$subject_output_dir/${class_name}_${method}-test-by-test-analysis.log"
+
+# Create directories if they don't exist
+mkdir -p "$specs_per_test_dir"
+
+echo "### Test-by-test spec filtering analysis: $class_name.$method" | tee -a "$log_file"
+echo "# Class: $class_name" | tee -a "$log_file"
+echo "# Method: $method" | tee -a "$log_file"
+echo "# Invariants file: $invs_file" | tee -a "$log_file"
+echo "# Assertions file: $assertions_file" | tee -a "$log_file"
+
+if [[ ! -f "$target_class" ]]; then
+    echo "Error: Class file $target_class not found!"
+    exit 1
+fi
+if [[ ! -f "$invs_file" ]]; then
+    echo "Error: Invariants file $invs_file not found!"
+    exit 1
+fi
+if [[ ! -f "$assertions_file" ]]; then
+    echo "Error: Assertions file $assertions_file not found!"
+    exit 1
+fi
+
+# Find the build file
+build_file_dir=""
+current_dir="$target_class"
+while [ "$current_dir" != "/" ]; do
+    build_file_dir=$(find "$current_dir" -maxdepth 1 -name "build.gradle" -o -name "pom.xml" | head -n 1)
+    if [ -n "$build_file_dir" ]; then
+        break
+    fi
+    current_dir=$(dirname "$current_dir")
+done
+if [ -z "$build_file_dir" ]; then
+    echo "Build file not found"
+    exit 1
+fi
+
+# Subject classpath
+subject_sources=$(dirname "$build_file_dir")
+subject_cp="$subject_sources/build/libs/*"
+
+# Prepare classpath for Daikon
+cp_for_daikon="libs/*:$subject_cp"
+
+# Find compilable test files
+llm_compilable_test_file=$(find "$tests_dir" -name "*LlmCompilableTest.java" | sort)
+
+test_files_path="$tests_dir/tests"
+mkdir -p "$test_files_path"
+python3 scripts/test_splitter.py "$llm_compilable_test_file" "$test_files_path"
+
+for test_file in "$test_files_path"/*; do
+    echo "> Processing test file: $test_file" | tee -a "$log_file"
+    test_name=$(basename "$test_file" .txt)
+done
+
+echo "> Completed test-by-test specification analysis" | tee -a "$log_file"
+echo "Results are saved in $specs_per_test_dir"
