@@ -69,7 +69,7 @@ subject_cp="$subject_sources/build/libs/*"
 # Prepare classpath for Daikon
 cp_for_daikon="libs/*:$subject_cp"
 
-# Find compilable test files
+# Find compilable test suite
 llm_compilable_test_file=$(find "$tests_dir" -name "*LlmCompilableTest.java" | sort)
 
 # Check if the test file exists
@@ -146,10 +146,49 @@ for test_file in "$test_files_path"/*; do
         continue
     fi
 
-    # Run Chicory on the existing testsuite to create the valid trace
-    echo "Running Chicory on the existing testsuite to create the valid trace" | tee -a "$log_file"
+    # Run Chicory to create the valid trace
+    echo "Running Chicory on the existing test to create the valid trace" | tee -a "$log_file"
+    objects_file="$specs_per_test_dir/${test_name}TesterDriver-objects.xml"
+    cmp_file="$specs_per_test_dir/${test_name}TesterDriver.decls-DynComp"
+    java -cp "$cp_for_daikon":"$tests_dir" daikon.Chicory \
+        --output-dir="$specs_per_test_dir" \
+        --comparability-file="$cmp_file" \
+        --ppt-omit-pattern="${test_name}TesterDriver.*" \
+        "testers.${test_name}TesterDriver" \
+        "$objects_file" >>"$log_file" 2>&1
 
-    echo ''
+    # Run Daikon Invariant Checker to validate the invariants
+    echo "Running Daikon Invariant Checker from driver: $driver_file_name" | tee -a "$log_file"
+    dtrace_file="$specs_per_test_dir/${test_name}TesterDriver.dtrace.gz"
+    java -Xmx8g -cp "$cp_for_daikon":"$tests_dir" daikon.tools.InvariantChecker \
+        --conf \
+        --serialiazed-objects "$objects_file" \
+        "$invs_file" \
+        "$dtrace_file" \
+        >/dev/null
+
+    mv invs.csv "$specs_per_test_dir/${test_name}TesterDriver-invs.csv"
+    rm invs_file.xml
+
+    # Save the specifications of interest, i.e., the postconditions or object invariants
+    echo "Saving the specifications of interest" | tee -a "$log_file"
+    python3 scripts/filter_invariants_of_interest.py "$specs_per_test_dir/${test_name}TesterDriver-invs.csv" "$target_class_fqname" "$method" >>"$log_file" 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error: Filtering invariants of interest failed for $test_file" | tee -a "$log_file"
+        continue
+    fi
+
+    # Extract the specifications
+    echo "Extracting non-filtered assertions" | tee -a "$log_file"
+    python3 scripts/extract_non_filtered_assertions.py "$assertions_file" "$specs_per_test_dir/${test_name}TesterDriver-invs.csv" "$class_name" "$method" >>"$log_file" 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error: Extracting non-filtered assertions failed for $test_file" | tee -a "$log_file"
+        continue
+    fi
+
+    # TODO: modify the script (scripts/extract_non_filtered_assertions.py) to save the filtered assertions in a specific output file or directory
+
+    echo '' >>"$log_file"
 done
 
 echo "> Completed test-by-test specification analysis" | tee -a "$log_file"
