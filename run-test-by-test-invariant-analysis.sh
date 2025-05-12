@@ -131,7 +131,7 @@ for test_file in "$test_files_path"/*; do
     } >>"$driver_file_name"
 
     # Compile the test file
-    echo "Compiling test file: $tester_file_name" | tee -a "$log_file"
+    echo ": Compiling test file: $tester_file_name" | tee -a "$log_file"
     javac -cp "$cp_for_daikon" "$tester_file_name" "$driver_file_name" -d "$tests_dir"
     if [ $? -ne 0 ]; then
         echo "Error: Compilation failed for $tester_file_name" | tee -a "$log_file"
@@ -139,7 +139,7 @@ for test_file in "$test_files_path"/*; do
     fi
 
     # Perform the Dynamic Comparability Analysis
-    echo "Performing Dynamic Comparability Analysis from driver: $driver_file_name" | tee -a "$log_file"
+    echo ": Performing Dynamic Comparability Analysis from driver: $driver_file_name" | tee -a "$log_file"
     java -cp "$cp_for_daikon":"$tests_dir" daikon.DynComp "testers.${test_name}TesterDriver" --output-dir="$specs_per_test_dir"
     if [ $? -ne 0 ]; then
         echo "Error: Daikon analysis failed for $test_file" | tee -a "$log_file"
@@ -147,7 +147,7 @@ for test_file in "$test_files_path"/*; do
     fi
 
     # Run Chicory to create the valid trace
-    echo "Running Chicory on the existing test to create the valid trace" | tee -a "$log_file"
+    echo ": Running Chicory on the existing test to create the valid trace" | tee -a "$log_file"
     objects_file="$specs_per_test_dir/${test_name}TesterDriver-objects.xml"
     cmp_file="$specs_per_test_dir/${test_name}TesterDriver.decls-DynComp"
     java -cp "$cp_for_daikon":"$tests_dir" daikon.Chicory \
@@ -158,7 +158,7 @@ for test_file in "$test_files_path"/*; do
         "$objects_file" >>"$log_file" 2>&1
 
     # Run Daikon Invariant Checker to validate the invariants
-    echo "Running Daikon Invariant Checker from driver: $driver_file_name" | tee -a "$log_file"
+    echo ": Running Daikon Invariant Checker from driver: $driver_file_name" | tee -a "$log_file"
     dtrace_file="$specs_per_test_dir/${test_name}TesterDriver.dtrace.gz"
     java -Xmx8g -cp "$cp_for_daikon":"$tests_dir" daikon.tools.InvariantChecker \
         --conf \
@@ -171,7 +171,7 @@ for test_file in "$test_files_path"/*; do
     rm invs_file.xml
 
     # Save the specifications of interest, i.e., the postconditions or object invariants
-    echo "Saving the specifications of interest" | tee -a "$log_file"
+    echo ": Saving the specifications of interest" | tee -a "$log_file"
     python3 scripts/filter_invariants_of_interest.py "$specs_per_test_dir/${test_name}TesterDriver-invs.csv" "$target_class_fqname" "$method" >>"$log_file" 2>&1
     if [ $? -ne 0 ]; then
         echo "Error: Filtering invariants of interest failed for $test_file" | tee -a "$log_file"
@@ -179,7 +179,7 @@ for test_file in "$test_files_path"/*; do
     fi
 
     # Extract the specifications
-    echo "Extracting non-filtered assertions" | tee -a "$log_file"
+    echo ": Extracting non-filtered assertions" | tee -a "$log_file"
     python3 scripts/extract_non_filtered_assertions.py "$assertions_file" "$specs_per_test_dir/${test_name}TesterDriver-invs.csv" "$class_name" "$method" >>"$log_file" 2>&1
     if [ $? -ne 0 ]; then
         echo "Error: Extracting non-filtered assertions failed for $test_file" | tee -a "$log_file"
