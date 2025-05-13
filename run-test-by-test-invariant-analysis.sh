@@ -25,6 +25,10 @@ tests_dir="$subject_output_dir/test"
 specs_per_test_dir="$tests_dir/specs_per_test"
 log_file="$subject_output_dir/${class_name}_${method}-test-by-test-analysis.log"
 
+# Remove previous output files
+[ -d "$specs_per_test_dir" ] && rm -rf "$specs_per_test_dir"
+[ -f "$log_file" ] && rm "$log_file"
+
 # Create directories if they don't exist
 mkdir -p "$specs_per_test_dir"
 
@@ -186,10 +190,22 @@ for test_file in "$test_files_path"/*; do
         continue
     fi
 
-    # TODO: modify the script (scripts/extract_non_filtered_assertions.py) to save the filtered assertions in a specific output file or directory
+    # Get the specifications filtered by the test
+    echo ": Getting the specifications filtered by the test" | tee -a "$log_file"
+    specs_filtereds_by_test="$specs_per_test_dir/${test_name}.txt"
+    python3 filtered-specs.py "$subject_name" "$class_name" "$method" >>"$log_file" >>"$specs_filtereds_by_test" 2>&1
+    if [ $? -ne 0 ]; then
+        echo "Error: Refining assertions failed for $test_file" | tee -a "$log_file"
+        continue
+    fi
 
-    echo '' >>"$log_file"
+    echo "" | tee -a "$log_file"
 done
+
+# Clean up
+find "$specs_per_test_dir" -type f ! -name "*.txt" -delete
+rm -r "$tests_dir"/testers
+rm "$subject_output_dir/specs/${class_name}-${method}-specfuzzer-refined.assertions"
 
 echo "> Completed test-by-test specification analysis" | tee -a "$log_file"
 echo "Results are saved in $specs_per_test_dir"
