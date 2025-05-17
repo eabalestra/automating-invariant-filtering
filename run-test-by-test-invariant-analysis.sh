@@ -25,9 +25,9 @@ tests_dir="$subject_output_dir/test"
 specs_per_test_dir="$tests_dir/specs_per_test"
 log_file="$subject_output_dir/${class_name}_${method}-test-by-test-analysis.log"
 
-# Remove previous output files
+# Clean up old output files
 [ -d "$specs_per_test_dir" ] && rm -rf "$specs_per_test_dir"
-[ -f "$log_file" ] && rm "$log_file"
+echo "" >"$log_file"
 
 # Create directories if they don't exist
 mkdir -p "$specs_per_test_dir"
