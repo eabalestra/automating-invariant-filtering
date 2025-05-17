@@ -83,13 +83,14 @@ if [ -d "$test_files_path" ]; then
 fi
 mkdir -p "$test_files_path"
 
+echo "> Splitting the generated test suite into individual test files" | tee -a "$log_file"
 # Split the test suite into individual test files
 python3 scripts/test_splitter.py "$llm_compilable_test_file" "$test_files_path"
 
 # Check if there are test files before processing
 if [ -z "$(ls -A "$test_files_path" 2>/dev/null)" ]; then
     echo "> No test files found in $test_files_path" | tee -a "$log_file"
-    echo "Exiting test-by-test analysis" | tee -a "$log_file"
+    echo "# Exiting test-by-test analysis" | tee -a "$log_file"
     exit 1
 fi
 
