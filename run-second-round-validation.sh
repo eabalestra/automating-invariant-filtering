@@ -80,10 +80,6 @@ fi
 
 # Recompile the subject
 echo "> Recompiling subject: $target_class" | tee -a "$log_file"
-#current_dir=$(pwd)
-#cd "$subject_sources" || exit
-#./gradlew -q -Dskip.tests jar
-#cd "$current_dir" || exit
 python3 scripts/compile_subject.py "$subject_sources"
 
 # Perform the Dynamic Comparability Analysis
