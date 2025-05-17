@@ -40,18 +40,17 @@ specs_before_test_gen_df['invariant'] = specs_before_test_gen_df['invariant'].as
 
 # Create a dataframe for the specs that were filtered through Daikon with the newly generated tests traces
 specs_after_test_gen_df = pd.read_csv(filtered_specs_file)
-specs_of_interest = specs_after_test_gen_df['invariant'].dropna(
-).unique().tolist()
+filtered_specs = specs_after_test_gen_df['invariant'].dropna().tolist()
 
 # Obtain the specs that were not filtered out
-is_spec_of_interest = specs_before_test_gen_df['invariant'].isin(
-    specs_of_interest)
-non_filtered_specs_df = specs_before_test_gen_df[~is_spec_of_interest]
-filtered_specs_df = specs_before_test_gen_df[is_spec_of_interest]
+spec_is_filtered = specs_before_test_gen_df['invariant'].isin(filtered_specs)
+
+non_filtered_specs_df = specs_before_test_gen_df[~spec_is_filtered]
+filtered_specs_df = specs_before_test_gen_df[spec_is_filtered]
 
 print(
     f"Specs from {os.path.basename(buckets_assertions_file)}: {len(specs_before_test_gen_df)}")
-print(f"Filtered specs: {len(filtered_specs_df['invariant'].unique())}")
+print(f"Filtered specs: {len(filtered_specs_df['invariant'])}")
 
 original_buckets = 0
 original_specs = 0
