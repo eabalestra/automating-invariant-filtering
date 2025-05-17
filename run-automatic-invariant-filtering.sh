@@ -41,9 +41,11 @@ output_dir="output/${class_name}_${method_name}"
 mkdir -p "$output_dir"
 
 log_file="$output_dir/${class_name}_${method_name}.log"
+llm_generated_test_suite="$tests_output_dir/${class_name}_${method_name}LlmTest.java"
 
-# Clear log file
+# Clear old output files
 echo "" >"$log_file"
+echo "" >"$llm_generated_test_suite"
 
 # copy the existing test suite
 augmented_test_suite="${test_suite%.java}Augmented.java"
@@ -55,7 +57,6 @@ cp "$test_driver" "$augmented_test_driver"
 echo "> Generate tests using LLM" | tee -a "$log_file"
 python search-counterexample.py "$output_dir" "$class_path" "$spec_file" "$method_name" >>"$log_file" 2>&1
 tests_output_dir="$output_dir/test"
-llm_generated_test_suite="$tests_output_dir/${class_name}_${method_name}LlmTest.java"
 
 echo "> Prepare destination for the generated tests" | tee -a "$log_file"
 name_suffix="Augmented"
