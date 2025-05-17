@@ -86,6 +86,13 @@ mkdir -p "$test_files_path"
 # Split the test suite into individual test files
 python3 scripts/test_splitter.py "$llm_compilable_test_file" "$test_files_path"
 
+# Check if there are test files before processing
+if [ -z "$(ls -A "$test_files_path" 2>/dev/null)" ]; then
+    echo "> No test files found in $test_files_path" | tee -a "$log_file"
+    echo "Exiting test-by-test analysis" | tee -a "$log_file"
+    exit 1
+fi
+
 # Run Daikon on the test files
 for test_file in "$test_files_path"/*; do
     echo "> Processing test file: $test_file" | tee -a "$log_file"
