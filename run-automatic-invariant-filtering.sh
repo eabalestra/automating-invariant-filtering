@@ -42,6 +42,9 @@ mkdir -p "$output_dir"
 
 log_file="$output_dir/${class_name}_${method_name}.log"
 
+# Clear log file
+echo "" >"$log_file"
+
 # copy the existing test suite
 augmented_test_suite="${test_suite%.java}Augmented.java"
 cp "$test_suite" "$augmented_test_suite"
