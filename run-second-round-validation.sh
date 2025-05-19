@@ -30,8 +30,9 @@ specs_output_folder="$output_dir/specs"
 interest_specs_file="$specs_output_folder/interest-specs.csv"
 
 log_file="$output_dir/${class_name}_${method}-second-round-validation.log"
+
 # Clear log file
-echo "" > "$log_file"
+echo "" >"$log_file"
 
 # Prepare files
 mkdir -p "$daikon_output_folder"
@@ -59,11 +60,11 @@ subject_cp="$subject_sources/build/libs/*"
 cp_for_daikon="libs/*:$subject_cp"
 
 # Run script
-echo "==> Running second round validation for $target_class" | tee -a "$log_file"
-echo "Class: $class_name" | tee -a "$log_file"
-echo "Method: $method" | tee -a "$log_file"
-echo "Invariants file: $invs_file" | tee -a "$log_file"
-echo "Assertions file: $assertions_file" | tee -a "$log_file"
+echo "### Running second round validation for $target_class" | tee -a "$log_file"
+echo "# Class: $class_name" | tee -a "$log_file"
+echo "# Method: $method" | tee -a "$log_file"
+echo "# Invariants file: $invs_file" | tee -a "$log_file"
+echo "# Assertions file: $assertions_file" | tee -a "$log_file"
 
 if [[ ! -f "$target_class" ]]; then
     echo "Error: Class file $target_class not found!"
@@ -80,10 +81,6 @@ fi
 
 # Recompile the subject
 echo "> Recompiling subject: $target_class" | tee -a "$log_file"
-#current_dir=$(pwd)
-#cd "$subject_sources" || exit
-#./gradlew -q -Dskip.tests jar
-#cd "$current_dir" || exit
 python3 scripts/compile_subject.py "$subject_sources"
 
 # Perform the Dynamic Comparability Analysis

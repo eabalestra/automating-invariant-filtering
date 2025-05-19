@@ -5,14 +5,14 @@ import re
 
 AUTOMATIC_IF_OUTPUT_DIR = 'output'
 
-assertions_file = sys.argv[1]
+buckets_assertions_file = sys.argv[1]
 filtered_specs_file = sys.argv[2]
 class_name = sys.argv[3]
 method_name = sys.argv[4]
 
 output_directory = f'{AUTOMATIC_IF_OUTPUT_DIR}/{class_name}_{method_name}/specs'
 
-with open(assertions_file, 'r', encoding='utf-8') as file:
+with open(buckets_assertions_file, 'r', encoding='utf-8') as file:
     lines = file.readlines()
 
 records = []
@@ -33,18 +33,25 @@ for line in lines:
     else:
         records.append({'invariant': line, 'ppt': current_ppt})
 
-assertions_df = pd.DataFrame(records)
-assertions_df['invariant'] = assertions_df['invariant'].astype(str)
+# Create a DataFrame for the specs that existed before the test generation
+specs_before_test_gen_df = pd.DataFrame(records)
+specs_before_test_gen_df['invariant'] = specs_before_test_gen_df['invariant'].astype(
+    str)
 
-specs_df = pd.read_csv(filtered_specs_file)
-filtered_specs_list = specs_df['invariant'].dropna().unique().tolist()
+# Create a dataframe for the specs that were filtered through Daikon with the newly generated tests traces
+specs_after_test_gen_df = pd.read_csv(filtered_specs_file)
+specs_of_interest = specs_after_test_gen_df['invariant'].dropna(
+).unique().tolist()
 
-is_in_filtered_specs = assertions_df['invariant'].isin(filtered_specs_list)
-non_filtered_df = assertions_df[~is_in_filtered_specs]
-filtered_df = assertions_df[is_in_filtered_specs]
+# Obtain the specs that were not filtered out
+is_spec_of_interest = specs_before_test_gen_df['invariant'].isin(
+    specs_of_interest)
+non_filtered_specs_df = specs_before_test_gen_df[~is_spec_of_interest]
+filtered_specs_df = specs_before_test_gen_df[is_spec_of_interest]
 
-print(f"Specs from {os.path.basename(assertions_file)}: {len(assertions_df)}")
-print(f"Filtered specs: {len(filtered_df['invariant'].unique())}")
+print(
+    f"Specs from {os.path.basename(buckets_assertions_file)}: {len(specs_before_test_gen_df)}")
+print(f"Filtered specs: {len(filtered_specs_df['invariant'].unique())}")
 
 original_buckets = 0
 original_specs = 0
@@ -59,10 +66,10 @@ for line in lines:
         if match:
             original_specs = int(match.group(1))
 
-remaining_specs = len(non_filtered_df)
+remaining_specs = len(non_filtered_specs_df)
 
 ppt_sequence = []
-for ppt in assertions_df['ppt']:
+for ppt in specs_before_test_gen_df['ppt']:
     if ppt is not None and ppt not in ppt_sequence:
         ppt_sequence.append(ppt)
 
@@ -75,7 +82,7 @@ with open(output_file, 'w', encoding='utf-8') as file:
 
     # Write the invariants for each program point
     for ppt in ppt_sequence:
-        group = non_filtered_df[non_filtered_df['ppt'] == ppt]
+        group = non_filtered_specs_df[non_filtered_specs_df['ppt'] == ppt]
         if group.empty:
             continue
         file.write('=====================================\n')

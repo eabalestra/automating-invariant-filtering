@@ -17,6 +17,13 @@ if __name__ == "__main__":
 
     tests = extract_tests_from_file(source_test_suite)
 
+    if not tests:
+        print(f"No tests found in {source_test_suite}")
+        sys.exit(1)
+
+    print(
+        f"Splitting {len(tests)} tests from {source_test_suite} into individual files.")
+
     for test in tests:
 
         test_name_match = re.search(r'public void (\w+)\(', test)
