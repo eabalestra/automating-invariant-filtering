@@ -14,8 +14,7 @@ def generate_test(class_name, class_code, method_code, spec):
         prompt += f'[[CODE]]\n'
         prompt += class_code + '\n'
     prompt += f'[[METHOD]]\n{method_code}\n'
-    prompt += f'[[SPECIFICATION]]\n{spec}\n'
-    prompt += '[[TEST]]'
+    prompt += f'[[POSTCONDITION]]\n{spec}\n'
     print(prompt)
     response = requests.post(ollama_url, json={"model": llm, "prompt": prompt, "stream": False})
     json_response = json.loads(response.text)
