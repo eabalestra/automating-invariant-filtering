@@ -5,14 +5,16 @@ import re
 
 AUTOMATIC_IF_OUTPUT_DIR = 'output'
 
-buckets_assertions_file = sys.argv[1]
-filtered_specs_file = sys.argv[2]
+# Buckets assertions file from specfuzzer
+specfuzzer_assertions_file = sys.argv[1]
+# CSV file with invalid post-conditions from Daikon
+invalid_post_conditions_csv = sys.argv[2]
 class_name = sys.argv[3]
 method_name = sys.argv[4]
 
 output_directory = f'{AUTOMATIC_IF_OUTPUT_DIR}/{class_name}_{method_name}/specs'
 
-with open(buckets_assertions_file, 'r', encoding='utf-8') as file:
+with open(specfuzzer_assertions_file, 'r', encoding='utf-8') as file:
     lines = file.readlines()
 
 records = []
@@ -34,22 +36,39 @@ for line in lines:
         records.append({'invariant': line, 'ppt': current_ppt})
 
 # Create a DataFrame for the specs that existed before the test generation
-specs_before_test_gen_df = pd.DataFrame(records)
-specs_before_test_gen_df['invariant'] = specs_before_test_gen_df['invariant'].astype(
+specfuzzer_buckets_specs_df = pd.DataFrame(records)
+specfuzzer_buckets_specs_df['invariant'] = specfuzzer_buckets_specs_df['invariant'].astype(
     str)
 
 # Create a dataframe for the specs that were filtered through Daikon with the newly generated tests traces
-specs_after_test_gen_df = pd.read_csv(filtered_specs_file)
-filtered_specs = specs_after_test_gen_df['invariant'].dropna().tolist()
+invalid_postconditions = pd.read_csv(invalid_post_conditions_csv)
+invalid_specs = invalid_postconditions['invariant'].dropna().tolist()
 
 # Obtain the specs that were not filtered out
-spec_is_filtered = specs_before_test_gen_df['invariant'].isin(filtered_specs)
+is_spec_filtered = specfuzzer_buckets_specs_df['invariant'].isin(invalid_specs)
 
-non_filtered_specs_df = specs_before_test_gen_df[~spec_is_filtered]
-filtered_specs_df = specs_before_test_gen_df[spec_is_filtered]
+non_filtered_specs_df = specfuzzer_buckets_specs_df[~is_spec_filtered]
+filtered_specs_df = specfuzzer_buckets_specs_df[is_spec_filtered]
 
+# Commented out print statements for debugging purposes
+# print(f"Specs from specfuzzer:")
+# for inv in specfuzzer_buckets_specs_df['invariant']:
+#     print(f"  {inv}")
+# print("")
+
+# print(f"Filtered specs from {invalid_post_conditions_csv}:")
+# for inv in filtered_specs_df['invariant']:
+#     print(f"  {inv}")
+# print("")
+
+# print(f"Non-filtered specs from {specfuzzer_assertions_file}:")
+# for inv in non_filtered_specs_df['invariant']:
+#     print(f"  {inv}")
+# print("")
+
+# Dont change this print because it is used in the collect_results.py script
 print(
-    f"Specs from {os.path.basename(buckets_assertions_file)}: {len(specs_before_test_gen_df)}")
+    f"Specs from {os.path.basename(specfuzzer_assertions_file)}: {len(specfuzzer_buckets_specs_df)}")
 print(f"Filtered specs: {len(filtered_specs_df['invariant'])}")
 
 original_buckets = 0
@@ -68,7 +87,7 @@ for line in lines:
 remaining_specs = len(non_filtered_specs_df)
 
 ppt_sequence = []
-for ppt in specs_before_test_gen_df['ppt']:
+for ppt in specfuzzer_buckets_specs_df['ppt']:
     if ppt is not None and ppt not in ppt_sequence:
         ppt_sequence.append(ppt)
 
