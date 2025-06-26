@@ -14,8 +14,8 @@ class_name="${target_class_fqname##*.}"
 target_class=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$class_name".java)
 method="$3"
 # TODO: this invs file is the same after bucketing?
-invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
-assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1-buckets.assertions"
+specfuzzer_invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
+specfuzzer_assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1-buckets.assertions"
 
 test_class_name="${class_name}Tester"
 driver_name="${test_class_name}Driver"
@@ -63,19 +63,19 @@ cp_for_daikon="libs/*:$subject_cp"
 echo "### Running second round validation for $target_class" | tee -a "$log_file"
 echo "# Class: $class_name" | tee -a "$log_file"
 echo "# Method: $method" | tee -a "$log_file"
-echo "# Invariants file: $invs_file" | tee -a "$log_file"
-echo "# Assertions file: $assertions_file" | tee -a "$log_file"
+echo "# Invariants file: $specfuzzer_invs_file" | tee -a "$log_file"
+echo "# Assertions file: $specfuzzer_assertions_file" | tee -a "$log_file"
 
 if [[ ! -f "$target_class" ]]; then
     echo "Error: Class file $target_class not found!"
     exit 1
 fi
-if [[ ! -f "$invs_file" ]]; then
-    echo "Error: Invariants file $invs_file not found!"
+if [[ ! -f "$specfuzzer_invs_file" ]]; then
+    echo "Error: Invariants file $specfuzzer_invs_file not found!"
     exit 1
 fi
-if [[ ! -f "$assertions_file" ]]; then
-    echo "Error: Assertions file $assertions_file not found!"
+if [[ ! -f "$specfuzzer_assertions_file" ]]; then
+    echo "Error: Assertions file $specfuzzer_assertions_file not found!"
     exit 1
 fi
 
@@ -104,7 +104,7 @@ dtrace_file="$daikon_output_folder/${test_suite_driver}.dtrace.gz"
 java -Xmx8g -cp "$cp_for_daikon" daikon.tools.InvariantChecker \
     --conf \
     --serialiazed-objects "$objects_file" \
-    "$invs_file" \
+    "$specfuzzer_invs_file" \
     "$dtrace_file" \
     >/dev/null
 
@@ -117,7 +117,7 @@ python3 scripts/filter_invariants_of_interest.py "$daikon_output_folder/invs.csv
 
 # Extract the assertions that are not discarded by the invariant checker
 echo "> Extracting non-filtered assertions" | tee -a "$log_file"
-python3 scripts/extract_non_filtered_assertions.py "$assertions_file" "$interest_specs_file" "$class_name" "$method" >>"$log_file" 2>&1
+python3 scripts/extract_non_filtered_assertions.py "$specfuzzer_assertions_file" "$interest_specs_file" "$class_name" "$method" >>"$log_file" 2>&1
 
 echo "> Done" | tee -a "$log_file"
 echo "Output is saved in ${output_dir}"
