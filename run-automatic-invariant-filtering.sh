@@ -47,6 +47,8 @@ llm_generated_test_suite="$tests_output_dir/${class_name}_${method_name}LlmTest.
 # Clear old output files
 echo "" >"$log_file"
 echo "" >"$llm_generated_test_suite"
+echo ""> "$tests_output_dir/${class_name}_${method_name}LlmFixedTest.java"
+echo ""> "$tests_output_dir/${class_name}_${method_name}LlmCompilableTest.java"
 
 # copy the existing test suite
 augmented_test_suite="${test_suite%.java}Augmented.java"
