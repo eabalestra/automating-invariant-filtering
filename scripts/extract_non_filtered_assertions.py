@@ -42,29 +42,27 @@ specfuzzer_buckets_specs_df['invariant'] = specfuzzer_buckets_specs_df['invarian
 
 # Create a dataframe for the specs that were filtered through Daikon with the newly generated tests traces
 invalid_postconditions = pd.read_csv(invalid_post_conditions_csv)
-invalid_specs = invalid_postconditions['invariant'].dropna().tolist()
 
-# Obtain the specs that were not filtered out
-is_spec_filtered = specfuzzer_buckets_specs_df['invariant'].isin(invalid_specs)
+merged = specfuzzer_buckets_specs_df.merge(
+    invalid_postconditions,
+    how='left',
+    indicator=True
+)
 
-non_filtered_specs_df = specfuzzer_buckets_specs_df[~is_spec_filtered]
-filtered_specs_df = specfuzzer_buckets_specs_df[is_spec_filtered]
+refined_specs_df = merged[merged['_merge'] == 'left_only'].drop('_merge', axis=1)
+deleted_specs_df = merged[merged['_merge'] == 'both'].drop('_merge', axis=1)
 
-# Commented out print statements for debugging purposes
-# print(f"Specs from specfuzzer:")
-# for inv in specfuzzer_buckets_specs_df['invariant']:
-#     print(f"  {inv}")
-# print("")
+# TODO: Todo esto esta chatgpeteado. Pero anda, borra este comentario despues.
+# Output of specfuzzer. It should be .assertions file, not buckets.assertions. Because we want to see how many specs were discarded from the total. Maybe the variable should be called specfuzzer_assertions_df.
+print(specfuzzer_buckets_specs_df)
+# This are the "invalid" assertions, it should be assertions because include class invariants and method postconditions. There are the invalid postconditions from .gz file, that means we can have more assertions than .assertions file.
+print(invalid_postconditions)
+# This df contains the assertions of specfuzzer output that are not in invalid_postconditions df. This is our final output.
+print(refined_specs_df)
+# This df contains the removed assertions from the original specfuzzer output. It is for debug purpose only.
+print(deleted_specs_df)
 
-# print(f"Filtered specs from {invalid_post_conditions_csv}:")
-# for inv in filtered_specs_df['invariant']:
-#     print(f"  {inv}")
-# print("")
-
-# print(f"Non-filtered specs from {specfuzzer_assertions_file}:")
-# for inv in non_filtered_specs_df['invariant']:
-#     print(f"  {inv}")
-# print("")
+# TODO: Acomodar de aca para abajo teniendo en cuenta los nuevos dataframes.
 
 # Dont change this print because it is used in the collect_results.py script
 print(
