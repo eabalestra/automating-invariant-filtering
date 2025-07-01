@@ -6,7 +6,6 @@ from langchain.output_parsers import PydanticOutputParser
 from pydantic import ValidationError
 from transformers import pipeline
 import torch
-from TraitList import TraitList
 from huggingface_hub import InferenceClient
 
 from ollama import chat
@@ -34,6 +33,7 @@ class LLMService:
         'L_DeepSeekR1Qwen32_Q4': 'deepseek-r1:32b',
         'L_DeepSeekR1Llama8': 'deepseek-r1:8b-llama-distill-fp16',
         'L_DeepSeekR1Llama70_Q4': 'deepseek-r1:70b',
+        'L_llama3.1': 'llama3.1:8b',
 
         # Locally deployed quantized models
         'L_Llama3370Instruct_Q4': 'llama3.3:70b-instruct-q4_K_M',
@@ -197,9 +197,20 @@ class LLMService:
         if model_url == "":
             model_url = self.get_model_url("GPT4oMini")
 
-        parser = PydanticOutputParser(pydantic_object=TraitList)
-        if format_instructions == "":
-            format_instructions = parser.get_format_instructions()
+        # parser = PydanticOutputParser(pydantic_object=TraitList)
+        def gpt_execute_prompt(self, model_id="GPT4oMini", prompt="", format_instructions="", pydantic_object=None):
+            model_url = self.get_model_url(model_id)
+            if model_url == "":
+                model_url = self.get_model_url("GPT4oMini")
+
+            if pydantic_object is not None:
+                parser = PydanticOutputParser(pydantic_object=pydantic_object)
+            else:
+                parser = None
+
+            if format_instructions == "" and parser is not None:
+                pass
+            # format_instructions = parser.get_format_instructions()
         try:
             messages = [
                 {"role": "user", "content": prompt + format_instructions}]
@@ -211,8 +222,9 @@ class LLMService:
                       gpt_response.refusal)
                 return None
             else:
-                parsed_mc_question = parser.invoke(gpt_response.content)
-                return parsed_mc_question
+                pass
+                # parsed_mc_question = parser.invoke(gpt_response.content)
+                # return parsed_mc_question
         except ValidationError as err:
             print("gpt_execute_prompt:ValidationError: ", err)
             return None
@@ -225,9 +237,10 @@ class LLMService:
         if model_url == "":
             model_url = self.get_model_url("GPT35TurboInstruct")
 
-        parser = PydanticOutputParser(pydantic_object=TraitList)
+        # parser = PydanticOutputParser(pydantic_object=TraitList)
         if format_instructions == "":
-            format_instructions = parser.get_format_instructions()
+            pass
+            # format_instructions = parser.get_format_instructions()
         try:
             messages = prompt + format_instructions
             completion = self.gpt_client.completions.create(
@@ -238,8 +251,9 @@ class LLMService:
                 print("gpt_execute_prompt:gpt_response.refusal: ", gpt_response)
                 return None
             else:
-                parsed_mc_question = parser.invoke(gpt_response)
-                return parsed_mc_question
+                pass
+                # parsed_mc_question = parser.invoke(gpt_response)
+                # return parsed_mc_question
         except ValidationError as err:
             print("gpt_execute_prompt:ValidationError: ", err)
             return None
@@ -260,9 +274,10 @@ class LLMService:
             parameters['return_full_text'] = False
         # if model_id == "MiniCPMo26":
         #     parameters['return_full_text'] = False
-        parser = PydanticOutputParser(pydantic_object=TraitList)
+        # parser = PydanticOutputParser(pydantic_object=TraitList)
         if format_instructions == "":
-            format_instructions = parser.get_format_instructions()
+            pass
+            # format_instructions = parser.get_format_instructions()
 
         payload = {"inputs": prompt +
                    format_instructions, "parameters": parameters}
@@ -294,8 +309,8 @@ class LLMService:
             #     print('hf_execute_prompt: ERROR: ' + generated_text['error'])
             #     return None
 
-            parsed_mc_question = parser.invoke(generated_text)
-            return parsed_mc_question
+            # parsed_mc_question = parser.invoke(generated_text)
+            # return parsed_mc_question
         except ValidationError as err:
             print("hf_execute_prompt:ValidationError: ", err)
             return None
@@ -310,16 +325,16 @@ class LLMService:
 
         headers = {}  # ""Content-Type": "application/json" x-wait-for-model": "true"
         API_URL = f"http://localhost:11434/api/generate"
-        parser = PydanticOutputParser(pydantic_object=TraitList)
+        # parser = PydanticOutputParser(pydantic_object=TraitList)
         if format_instructions == "":
-            format_instructions = parser.get_format_instructions()
+            pass
+            # format_instructions = parser.get_format_instructions()
 
         # payload = {"model": model_url,"prompt": prompt + format_instructions, "stream": False}
         messages = [{"role": "user", "content": prompt + format_instructions}]
         try:
             # response = requests.post(API_URL, headers=headers, json=payload, timeout=self.TIMEOUT)
-            response = chat(messages=messages, model=model_url,
-                            format=TraitList.model_json_schema())
+            response = chat(messages=messages, model=model_url, format="")
             if not response.done:
                 if response.status_code == 503:  # model remains cold
                     self.cold_models.append(model_id)
@@ -333,12 +348,12 @@ class LLMService:
                 print('ollama: not response.ok' + response.text)
                 return None
 
+            return response.message.content
             # generated_text = response.json()[0]['generated_text']
             # generated_text = response.json()['response']
             # parsed_mc_question = parser.invoke(generated_text)
-            parsed_mc_question = TraitList.model_validate_json(
-                response.message.content)
-            return parsed_mc_question
+            # parsed_mc_question = TraitList.model_validate_json(response.message.content)
+            # return parsed_mc_question
 
         except ValidationError as err:
             print("ollama:ValidationError: ", err)
@@ -352,9 +367,10 @@ class LLMService:
         if model_url == "":
             model_url = self.get_model_url("Llama321Instruct")
 
-        parser = PydanticOutputParser(pydantic_object=TraitList)
+        # parser = PydanticOutputParser(pydantic_object=TraitList)
         if format_instructions == "":
-            format_instructions = parser.get_format_instructions()
+            pass
+            # format_instructions = parser.get_format_instructions()
         try:
             client = InferenceClient(
                 model_url,
@@ -368,12 +384,13 @@ class LLMService:
                 messages=messages
             )
             generated_text = completion.choices[0].message.content
-            if "error" in generated_text:
+            if generated_text is not None and "error" in generated_text:
                 print("hf_llama32: error: ", generated_text)
                 return None
             else:
-                parsed_mc_question = parser.invoke(generated_text)
-                return parsed_mc_question
+                pass
+                # parsed_mc_question = parser.invoke(generated_text)
+                # return parsed_mc_question
         except ValidationError as err:
             print("hf_llama32:ValidationError: ", err)
             return None
