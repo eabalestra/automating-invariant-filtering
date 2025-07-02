@@ -1,5 +1,5 @@
 import argparse
-import sys
+import logging
 import os
 import time
 
@@ -12,7 +12,7 @@ def list_of_strings(arg):
     return arg.split(',')
 
 
-def add_spec_to_test(code, spec_str):
+def add_spec_comment(code: str, spec: str) -> str:
     test_method_start = code.find("@Test")
     if test_method_start == -1:
         return code
@@ -21,7 +21,7 @@ def add_spec_to_test(code, spec_str):
     if method_body_start == -1:
         return code
 
-    specification_comment = "\n    // Spec: " + spec_str
+    specification_comment = "\n    // Spec: " + spec
     code_before_brace = code[:method_body_start + 1]
     code_after_brace = code[method_body_start + 1:]
     modified_code = code_before_brace + specification_comment + code_after_brace
@@ -29,10 +29,7 @@ def add_spec_to_test(code, spec_str):
     return modified_code
 
 
-if __name__ == "__main__":
-    import sys
-    print(f"Debug: sys.argv = {sys.argv}")
-    
+def parse_args():
     parser = argparse.ArgumentParser(
         prog='TestGen',
         description='Generates unit tests that attempt to override specifications for a Java method using LLM.',
@@ -58,118 +55,130 @@ if __name__ == "__main__":
     parser.add_argument('-pl', "--prompt-list", dest="list_prompts",
                         action='store_true', help="List the available prompts.")
 
-    args = parser.parse_args()
-    
-    print(f"Debug: args.models_list = {args.models_list}")
-    print(f"Debug: args.models_prefix = {args.models_prefix}")
-    print(f"Debug: args.prompts_list = {args.prompts_list}")
-    print(f"Debug: type(args.models_list) = {type(args.models_list)}")
+    return parser.parse_args()
 
-    output_dir = args.output_dir
 
-    output_dir = args.output_dir
-    subject_class = args.subject_class
-    specs_file = args.specs_file
-    method_name = args.method_name
+def configure_logging():
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s: %(message)s',
+        level=logging.INFO
+    )
 
-    LLMrunner = LLMTestGenerator()
 
+def select_models(llm_service, models_list, models_prefix):
     # include only supported models
     models = []
-    print(f"Debug: Checking models_prefix: {args.models_prefix}")
-    if args.models_prefix is not None:
-        models = LLMrunner.llm_service.get_model_ids_startswith(
-            args.models_prefix)
+    print(f"Debug: Checking models_prefix: {models_prefix}")
+    if models_prefix is not None:
+        models = llm_service.get_model_ids_startswith(models_prefix)
         print(f"Debug: Models found with prefix: {models}")
         if len(models) == 0:
-            raise parser.error("Invalid models prefix.")
+            raise ValueError("Invalid models prefix.")
     else:
-        print(f"Debug: No prefix, checking models_list: {args.models_list}")
-        if args.models_list is None or args.models_list == "" or args.models_list == [] or args.models_list == [""]:
+        print(f"Debug: No prefix, checking models_list: {models_list}")
+        if models_list is None or models_list == "" or models_list == [] or models_list == [""]:
             print("Debug: Using all models")
-            models = LLMrunner.llm_service.get_all_models()
+            models = llm_service.get_all_models()
         else:
             print("Debug: Filtering models from list")
-            all_models = LLMrunner.llm_service.get_all_models()
+            all_models = llm_service.get_all_models()
             print(f"Debug: All available models: {all_models}")
             for m in all_models:
-                if m in args.models_list:
+                if m in models_list:
                     print(f"Debug: Adding model {m}")
                     models.append(m)
         print(f"Debug: Final models list: {models}")
         if len(models) == 0:
-            raise parser.error("No model selected.")
+            raise ValueError("No model selected.")
+    return models
 
+
+def select_prompts(prompts_list):
     # include only supported prompts
     prompt_IDs = []
-    if args.prompts_list is None or args.prompts_list == "" or args.prompts_list == [] or args.prompts_list == [""]:
+    if prompts_list is None or prompts_list == "" or prompts_list == [] or prompts_list == [""]:
         prompt_IDs = PromptID.all()
     else:
-        for p in args.prompts_list:
+        for p in prompts_list:
             for p1 in PromptID.all():
                 if p == p1.name or "PromptID."+p == p1.name:
                     prompt_IDs.append(p1)
+    return prompt_IDs
 
-    # Load class code and method code
+
+def main():
+    args = parse_args()
+    configure_logging()
+
+    LLMrunner = LLMTestGenerator()
+
+    if args.list_llms:
+        print("Supported LLMs:", *LLMrunner.llm_service.get_all_models(), sep='\n')
+        return
+    if args.list_prompts:
+        print("Available PromptIDs:", *[p.name for p in PromptID], sep='\n')
+        return
+
+    try:
+        models = select_models(LLMrunner.llm_service,
+                               args.models_list,
+                               args.models_prefix)
+        prompt_IDs = select_prompts(args.prompts_list)
+    except ValueError as e:
+        logging.error(e)
+        return
+
+    subject_class = args.subject_class
     class_code = open(subject_class, 'r').read()
-    method_code = code_extractor.extract_method_code(class_code, method_name)
+    method_code = code_extractor.extract_method_code(
+        class_code, args.method_name)
     class_name = os.path.basename(subject_class).replace('.java', '')
 
-    # Read the specs file
-    likely_valid_specs = spec_reader.read_and_filter_specs(specs_file)
-
-    # create the output file
+    specs = spec_reader.read_and_filter_specs(args.specs_file)
+    output_dir = args.output_dir
     output_test_dir = os.path.join(output_dir, "test")
     os.makedirs(output_test_dir, exist_ok=True)
-    generated_test_suite = os.path.join(
-        output_test_dir, f"{class_name}_{method_name}LlmTest.java")
+    suite_file_path = os.path.join(
+        output_test_dir, f"{class_name}_{args.method_name}LlmTest.java")
+    log_file_path = os.path.join(output_test_dir, 'timestamps.log')
 
-    # timestamp log
-    llm_test_timestamp = os.path.join(output_test_dir, "timestamps.log")
-    log = open(llm_test_timestamp, "w")
+    print(f"Model(s) used: {models}")
+    print(f"Prompt(s) used: {prompt_IDs}")
 
-    test_attempts = 1
     total_time = 0.0
+    with open(suite_file_path, 'a') as suite, open(log_file_path, 'w') as log:
+        for spec in specs:
+            print(f"Generating test for spec: {spec}")
+            updated_spec = spec_processor.update_specification_variables(
+                spec, class_name)
 
-    if len(prompt_IDs) == 0:
-        raise parser.error("No prompt selected.")
+            start = time.time()
+            test_code = LLMrunner.generate_test(
+                class_code=class_code,
+                method_code=method_code,
+                spec=updated_spec,
+                prompt_ids=prompt_IDs,
+                models_ids=models
+            )
+            elapsed = time.time() - start
+            total_time += elapsed
 
-    with open(generated_test_suite, 'a') as f:
-        for spec in likely_valid_specs:
-            for i in range(test_attempts):
-                print(f"Generating test for spec: {spec}")
-                processed_spec = spec_processor.update_specification_variables(
-                    spec, class_name)
+            print(f"Generated test: {test_code}")
 
-                start_time = time.time()
+            log.write(
+                f"Time taken for LLM response for {spec}: {elapsed:.4f} sec")
 
-                print(f"Model(s) used: {models}")
-                print(f"Prompt(s) used: {prompt_IDs}")
+            test_code = spec_processor.remove_assertions_from_test(test_code)
+            test_code = test_extractor.extract_test_with_comments_from_string(
+                test_code)
+            test_code = add_spec_comment(test_code, spec)
+            test_code = add_spec_comment(test_code, updated_spec)
 
-                # Generate the tests using the different LLMs and prompts
-                generated_test = LLMrunner.generate_test(
-                    class_code=class_code, method_code=method_code, spec=processed_spec, prompt_ids=prompt_IDs, models_ids=models)
+            suite.write(test_code + '\n')
 
-                print(f"Generated test: {generated_test}")
+        log.write(
+            f"\nTotal LLM time for {class_name}_{args.method_name}: {total_time:.4f} seconds\n")
 
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                total_time += elapsed_time
-                log.write(
-                    f"Time taken for LLM response for {spec}: {elapsed_time:.4f} sec\n")
 
-                assertion_free_test = spec_processor.remove_assertions_from_test(
-                    generated_test)
-                final_test = test_extractor.extract_test_with_comments_from_string(
-                    assertion_free_test)
-
-                # Add two differents formats of the spec to the test
-                final_test = add_spec_to_test(final_test, spec)
-                final_test = add_spec_to_test(final_test, processed_spec)
-
-                # save response to a file in the output directory
-                f.write(final_test + "\n")
-
-    log.write(
-        f"\nTotal LLM time for {class_name}_{method_name}: {total_time:.4f} seconds\n")
-    log.close()
+if __name__ == "__main__":
+    main()
