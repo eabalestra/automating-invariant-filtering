@@ -65,7 +65,6 @@ cp "$test_driver" "$augmented_test_driver"
 
 # generate tests using LLM
 echo "> Generate tests using LLM" | tee -a "$log_file"
-echo "Debug: Arguments passed to Python: ${*:6}" | tee -a "$log_file"
 python search-counterexample.py "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:6}" >>"$log_file" 2>&1
 
 echo "> Prepare destination for the generated tests" | tee -a "$log_file"
