@@ -1,6 +1,7 @@
 from .LLMService import LLMService
 from .Prompt import Prompt, PromptID
 
+
 class LLMTestGenerator:
     llm_service: LLMService
     llm_response = ""
@@ -17,18 +18,17 @@ class LLMTestGenerator:
         for prompt in self.prompts:
             if prompt.id is not pid:
                 continue
-
             response = self.llm_service.execute_prompt(
                 mid, prompt.prompt, prompt.format_instructions)
-
             if response is not None:
                 combined_responses += response
         return combined_responses
 
     def generate_test(self, class_code, method_code, spec, prompt_ids=PromptID.all(), models_ids=[]):
-        print("calling llm for spec: ", spec)
+        self.llm_response = ""
         for mid in models_ids:
             for pid in prompt_ids:
                 self.generate_prompts(pid, class_code, method_code, spec)
-                self.llm_response += self.execute(pid, mid)
+                llm_output = self.execute(pid, mid)
+                self.llm_response += llm_output
         return self.llm_response
