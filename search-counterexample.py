@@ -68,26 +68,18 @@ def configure_logging():
 def select_models(llm_service, models_list, models_prefix):
     # include only supported models
     models = []
-    print(f"Debug: Checking models_prefix: {models_prefix}")
     if models_prefix is not None:
         models = llm_service.get_model_ids_startswith(models_prefix)
-        print(f"Debug: Models found with prefix: {models}")
         if len(models) == 0:
             raise ValueError("Invalid models prefix.")
     else:
-        print(f"Debug: No prefix, checking models_list: {models_list}")
         if models_list is None or models_list == "" or models_list == [] or models_list == [""]:
-            print("Debug: Using all models")
             models = llm_service.get_all_models()
         else:
-            print("Debug: Filtering models from list")
             all_models = llm_service.get_all_models()
-            print(f"Debug: All available models: {all_models}")
             for m in all_models:
                 if m in models_list:
-                    print(f"Debug: Adding model {m}")
                     models.append(m)
-        print(f"Debug: Final models list: {models}")
         if len(models) == 0:
             raise ValueError("No model selected.")
     return models
