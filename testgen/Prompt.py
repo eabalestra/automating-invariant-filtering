@@ -38,7 +38,7 @@ class Prompt:
         if self.id == PromptID.General_V1:
             self.template = prompt_template
             self.template += self.get_few_shot_examples(number_of_examples=3)
-            aux = '''
+            prompt_template_section = '''
             [[CODE]]
             {class_code}
             [[METHOD]]
@@ -46,10 +46,12 @@ class Prompt:
             [[POSTCONDITION]]
             {spec}
             '''
-            aux = aux.format(class_code=self.class_code,
-                             method_code=self.method_code,
-                             spec=self.spec)
-            self.prompt = self.template + aux
+            prompt_template_section = prompt_template_section.format(
+                class_code=self.class_code,
+                method_code=self.method_code,
+                spec=self.spec
+            )
+            self.prompt = self.template + prompt_template_section
         elif self.id == PromptID.General_V2:
             pass
 
@@ -115,7 +117,7 @@ assertTrue(a != b || b <= result);
 OK
 [[TEST]]
 NONE""",
-    """
+                     """
 [[CODE]]
 package jts;
 /**
@@ -185,7 +187,7 @@ public void testClamp_1() {
 
 """,
 
-    """
+                     """
 [[CODE]]
 package DataStructures;
 
