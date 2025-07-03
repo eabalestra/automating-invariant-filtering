@@ -49,17 +49,22 @@ merged = specfuzzer_buckets_specs_df.merge(
     indicator=True
 )
 
-refined_specs_df = merged[merged['_merge'] == 'left_only'].drop('_merge', axis=1)
+refined_specs_df = merged[merged['_merge']
+                          == 'left_only'].drop('_merge', axis=1)
 deleted_specs_df = merged[merged['_merge'] == 'both'].drop('_merge', axis=1)
 
 # TODO: Todo esto esta chatgpeteado. Pero anda, borra este comentario despues.
 # Output of specfuzzer. It should be .assertions file, not buckets.assertions. Because we want to see how many specs were discarded from the total. Maybe the variable should be called specfuzzer_assertions_df.
+print("Specfuzzer Buckets Assertions DataFrame:")
 print(specfuzzer_buckets_specs_df)
 # This are the "invalid" assertions, it should be assertions because include class invariants and method postconditions. There are the invalid postconditions from .gz file, that means we can have more assertions than .assertions file.
+print("Invalid Postconditions DataFrame:")
 print(invalid_postconditions)
 # This df contains the assertions of specfuzzer output that are not in invalid_postconditions df. This is our final output.
+print("Refined Specs DataFrame:")
 print(refined_specs_df)
 # This df contains the removed assertions from the original specfuzzer output. It is for debug purpose only.
+print("Deleted Specs DataFrame:")
 print(deleted_specs_df)
 
 # TODO: Acomodar de aca para abajo teniendo en cuenta los nuevos dataframes.
@@ -67,7 +72,7 @@ print(deleted_specs_df)
 # Dont change this print because it is used in the collect_results.py script
 print(
     f"Specs from {os.path.basename(specfuzzer_assertions_file)}: {len(specfuzzer_buckets_specs_df)}")
-print(f"Filtered specs: {len(filtered_specs_df['invariant'])}")
+print(f"Filtered specs: {len(deleted_specs_df['invariant'])}")
 
 original_buckets = 0
 original_specs = 0
@@ -82,7 +87,7 @@ for line in lines:
         if match:
             original_specs = int(match.group(1))
 
-remaining_specs = len(non_filtered_specs_df)
+remaining_specs = len(refined_specs_df)
 
 ppt_sequence = []
 for ppt in specfuzzer_buckets_specs_df['ppt']:
@@ -98,7 +103,7 @@ with open(output_file, 'w', encoding='utf-8') as file:
 
     # Write the invariants for each program point
     for ppt in ppt_sequence:
-        group = non_filtered_specs_df[non_filtered_specs_df['ppt'] == ppt]
+        group = refined_specs_df[refined_specs_df['ppt'] == ppt]
         if group.empty:
             continue
         file.write('=====================================\n')
