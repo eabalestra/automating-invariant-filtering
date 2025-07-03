@@ -1,5 +1,12 @@
 #!/bin/bash
+
+export OPENAI_API_KEY=
+export API_KEY_HUGGINGFACE=
+
+# shellcheck source=scripts/init_env.sh disable=SC1091
 source scripts/init_env.sh
+
+# shellcheck source=/dev/null
 source venv/bin/activate
 
 # parameters
@@ -47,8 +54,8 @@ llm_generated_test_suite="$tests_output_dir/${class_name}_${method_name}LlmTest.
 # Clear old output files
 echo "" >"$log_file"
 echo "" >"$llm_generated_test_suite"
-echo ""> "$tests_output_dir/${class_name}_${method_name}LlmFixedTest.java"
-echo ""> "$tests_output_dir/${class_name}_${method_name}LlmCompilableTest.java"
+echo "" >"$tests_output_dir/${class_name}_${method_name}LlmFixedTest.java"
+echo "" >"$tests_output_dir/${class_name}_${method_name}LlmCompilableTest.java"
 
 # copy the existing test suite
 augmented_test_suite="${test_suite%.java}Augmented.java"
@@ -58,7 +65,7 @@ cp "$test_driver" "$augmented_test_driver"
 
 # generate tests using LLM
 echo "> Generate tests using LLM" | tee -a "$log_file"
-python search-counterexample.py "$output_dir" "$class_path" "$spec_file" "$method_name" >>"$log_file" 2>&1
+python search-counterexample.py "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:6}" >>"$log_file" 2>&1
 
 echo "> Prepare destination for the generated tests" | tee -a "$log_file"
 name_suffix="Augmented"
