@@ -54,12 +54,16 @@ deleted_specs_df = merged[merged['_merge'] == 'both'].drop('_merge', axis=1)
 
 # TODO: Todo esto esta chatgpeteado. Pero anda, borra este comentario despues.
 # Output of specfuzzer. It should be .assertions file, not buckets.assertions. Because we want to see how many specs were discarded from the total. Maybe the variable should be called specfuzzer_assertions_df.
+print("Total specs inferred for specfuzzer")
 print(specfuzzer_buckets_specs_df)
 # This are the "invalid" assertions, it should be assertions because include class invariants and method postconditions. There are the invalid postconditions from .gz file, that means we can have more assertions than .assertions file.
+print("Potentially invalid specs obtains with our tool")
 print(invalid_postconditions)
 # This df contains the assertions of specfuzzer output that are not in invalid_postconditions df. This is our final output.
+print("New refined set of specs")
 print(refined_specs_df)
 # This df contains the removed assertions from the original specfuzzer output. It is for debug purpose only.
+print("Removed specs")
 print(deleted_specs_df)
 
 # TODO: Acomodar de aca para abajo teniendo en cuenta los nuevos dataframes.
