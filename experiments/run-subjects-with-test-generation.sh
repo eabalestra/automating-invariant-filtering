@@ -25,7 +25,7 @@ while IFS= read -r subject; do
     percentage=$((current_line * 100 / total_lines))
 
     # Clear positional parameters and split the subject line into arguments
-    set -- $subject
+    set -- "$subject"
 
     class_name="${2##*.}"
     test_suite=$class_name"Tester0"
@@ -34,7 +34,7 @@ while IFS= read -r subject; do
     echo "Running tool with arguments: $1, $2, $3, $test_suite, $test_driver"
     echo "Progress: $percentage% ($current_line/$total_lines)"
 
-    ./tool.sh --llm-test-aug $1 $2 $3 $test_suite $test_driver >/dev/null 2>&1
+    ./run-automatic-invariant-filtering.sh "$1" "$2" "$3" -models "L_Llama318Instruct" -p "General_V1" >/dev/null 2>&1
 
     if [[ $? -ne 0 ]]; then
         echo "Error: Tool execution failed for subject $subject"
