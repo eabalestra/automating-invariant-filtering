@@ -11,13 +11,16 @@ source venv/bin/activate
 
 # parameters
 subject_name=$1
-class_name=$2
+target_class_fqname="$2"
+class_name="${target_class_fqname##*.}"
 method_name=$3
 class_path=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$class_name".java)
 spec_file="$SPECS_DIR/$subject_name/output/$class_name-$method_name-specfuzzer-1-buckets.assertions"
-test_suite_name=$4
+
+test_suite_name=$class_name"Tester0"
 test_suite=$(find "$SUBJECTS_DIR/$subject_name/src/test/java" -type f -name "$test_suite_name".java)
-test_driver_name=$5
+
+test_driver_name=$class_name"TesterDriver"
 test_driver=$(find "$SUBJECTS_DIR/$subject_name/src/test/java" -type f -name "$test_driver_name".java)
 
 echo "### Running automatic invariant filtering"
