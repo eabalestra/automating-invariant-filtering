@@ -33,7 +33,6 @@ class LLMService:
         'L_DeepSeekR1Qwen32_Q4': 'deepseek-r1:32b',
         'L_DeepSeekR1Llama8': 'deepseek-r1:8b-llama-distill-fp16',
         'L_DeepSeekR1Llama70_Q4': 'deepseek-r1:70b',
-        'L_llama3.1': 'llama3.1:8b',
 
         # Locally deployed quantized models
         'L_Llama3370Instruct_Q4': 'llama3.3:70b-instruct-q4_K_M',
