@@ -32,6 +32,6 @@ for subject in subjects:
         f"Running tool with arguments: {args[0]}, {args[1]}, {args[2]}, {test_suite}, {test_driver}")
     print(f"Progress: {percentage}% ({current_line}/{total_lines})")
 
-    cmd = ["./tool.sh", "--daikon-val-filter", args[0],
+    cmd = ["run-second-round-validation", args[0],
            args[1], args[2], test_suite, test_driver]
     subprocess.run(cmd)
