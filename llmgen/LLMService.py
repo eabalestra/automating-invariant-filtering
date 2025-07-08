@@ -16,6 +16,7 @@ class LLMService:
 
     # key : model
     supported_models = {
+        'L_Gemma3:1B': 'gemma3:1b',
         # Locally deployed models
         'L_Phi4': 'phi4',
         'L_Phi4_Q16': 'phi4:14b-fp16',

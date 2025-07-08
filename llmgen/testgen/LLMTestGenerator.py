@@ -1,5 +1,5 @@
-from .LLMService import LLMService
-from .Prompt import Prompt, PromptID
+from ..LLMService import LLMService
+from ..Prompt import Prompt, PromptID
 
 
 class LLMTestGenerator:

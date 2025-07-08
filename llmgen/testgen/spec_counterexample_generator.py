@@ -1,15 +1,12 @@
+from llmgen.Prompt import PromptID
+from llmgen.testgen.LLMTestGenerator import LLMTestGenerator
+from llmgen.utils.string_utils import list_of_strings
+from scripts import spec_processor, spec_reader, test_extractor, code_extractor
+
 import argparse
 import logging
 import os
 import time
-
-from scripts import spec_processor, spec_reader, test_extractor, code_extractor
-from testgen.LLMTestGenerator import LLMTestGenerator
-from testgen.Prompt import PromptID
-
-
-def list_of_strings(arg):
-    return arg.split(',')
 
 
 def add_spec_comment(code: str, spec: str) -> str:
