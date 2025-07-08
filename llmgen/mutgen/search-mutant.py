@@ -32,3 +32,4 @@ with open(mutation_file, 'a') as f:
             print(mutation)
             # save response to a file in the output directory
             f.write(mutation + '\n')
+
