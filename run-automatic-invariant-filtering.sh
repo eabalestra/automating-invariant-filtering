@@ -3,6 +3,40 @@
 export OPENAI_API_KEY=
 export API_KEY_HUGGINGFACE=
 
+# Function to copy files with proper permissions
+safe_copy() {
+    local src="$1"
+    local dst="$2"
+    local dst_dir
+    dst_dir=$(dirname "$dst")
+    
+    # Ensure destination directory exists and is writable
+    if [[ ! -d "$dst_dir" ]]; then
+        echo "Creating directory: $dst_dir"
+        sudo mkdir -p "$dst_dir"
+        sudo chown "$(whoami):$(whoami)" "$dst_dir"
+        sudo chmod 755 "$dst_dir"
+    fi
+    
+    # Check if destination directory is writable
+    if [[ ! -w "$dst_dir" ]]; then
+        echo "Fixing permissions for directory: $dst_dir"
+        sudo chown "$(whoami):$(whoami)" "$dst_dir"
+        sudo chmod 755 "$dst_dir"
+    fi
+    
+    # Copy the file
+    if cp "$src" "$dst" 2>/dev/null; then
+        chmod 644 "$dst" 2>/dev/null
+        chown "$(whoami):$(whoami)" "$dst" 2>/dev/null
+    else
+        echo "Using sudo to copy file due to permission restrictions"
+        sudo cp "$src" "$dst"
+        sudo chmod 644 "$dst"
+        sudo chown "$(whoami):$(whoami)" "$dst"
+    fi
+}
+
 # shellcheck source=scripts/init_env.sh disable=SC1091
 source scripts/init_env.sh
 
@@ -62,13 +96,14 @@ echo "" >"$tests_output_dir/${class_name}_${method_name}LlmCompilableTest.java"
 
 # copy the existing test suite
 augmented_test_suite="${test_suite%.java}Augmented.java"
-cp "$test_suite" "$augmented_test_suite"
+safe_copy "$test_suite" "$augmented_test_suite"
+
 augmented_test_driver="${test_driver%.java}Augmented.java"
-cp "$test_driver" "$augmented_test_driver"
+safe_copy "$test_driver" "$augmented_test_driver"
 
 # generate tests using LLM
 echo "> Generate tests using LLM" | tee -a "$log_file"
-python search-counterexample.py "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:6}" >>"$log_file" 2>&1
+python -m llmgen.testgen.spec_counterexample_generator "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:6}" >>"$log_file" 2>&1
 
 echo "> Prepare destination for the generated tests" | tee -a "$log_file"
 name_suffix="Augmented"
