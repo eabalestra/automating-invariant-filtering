@@ -1,9 +1,5 @@
 #!/bin/bash
 
-export OPENAI_API_KEY=
-export API_KEY_HUGGINGFACE=
-export GOOGLE_API_KEY=
-
 # Function to copy files with proper permissions
 safe_copy() {
     local src="$1"
@@ -38,8 +34,8 @@ safe_copy() {
     fi
 }
 
-# shellcheck source=scripts/init_env.sh disable=SC1091
-source scripts/init_env.sh
+# shellcheck source=scripts/setup_env.sh disable=SC1091
+source config/setup_env.sh
 
 # shellcheck source=/dev/null
 source venv/bin/activate

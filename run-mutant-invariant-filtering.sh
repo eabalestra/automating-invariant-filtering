@@ -1,5 +1,5 @@
 #!/bin/bash
-source scripts/init_env.sh
+source config/setup_env.sh
 source venv/bin/activate
 
 # Arguments

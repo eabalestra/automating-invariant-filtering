@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script to analyze which specifications are filtered by each individual test
 
-source scripts/init_env.sh
+source config/setup_env.sh
 source venv/bin/activate
 
 [ -z "$DAIKONDIR" ] && {
