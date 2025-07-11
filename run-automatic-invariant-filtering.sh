@@ -9,7 +9,7 @@ safe_copy() {
     local dst="$2"
     local dst_dir
     dst_dir=$(dirname "$dst")
-    
+
     # Ensure destination directory exists and is writable
     if [[ ! -d "$dst_dir" ]]; then
         echo "Creating directory: $dst_dir"
@@ -17,14 +17,14 @@ safe_copy() {
         sudo chown "$(whoami):$(whoami)" "$dst_dir"
         sudo chmod 755 "$dst_dir"
     fi
-    
+
     # Check if destination directory is writable
     if [[ ! -w "$dst_dir" ]]; then
         echo "Fixing permissions for directory: $dst_dir"
         sudo chown "$(whoami):$(whoami)" "$dst_dir"
         sudo chmod 755 "$dst_dir"
     fi
-    
+
     # Copy the file
     if cp "$src" "$dst" 2>/dev/null; then
         chmod 644 "$dst" 2>/dev/null
