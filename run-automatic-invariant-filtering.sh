@@ -34,7 +34,7 @@ safe_copy() {
     fi
 }
 
-# shellcheck source=scripts/setup_env.sh disable=SC1091
+# shellcheck source=config/setup_env.sh disable=SC1091
 source config/setup_env.sh
 
 # shellcheck source=/dev/null
