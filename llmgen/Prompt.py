@@ -45,6 +45,7 @@ class Prompt:
             {method_code}
             [[POSTCONDITION]]
             {spec}
+            
             '''
             prompt_template_section = prompt_template_section.format(
                 class_code=self.class_code,
