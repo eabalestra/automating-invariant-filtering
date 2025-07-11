@@ -303,15 +303,16 @@ class LLMService:
                     return "error=429"
                 else:  # response.status_code == 403 or 400: # error model
                     self.error_models.append(model_id)
-                print('ollama: not response.ok' + response.text)
+                print(
+                    f"[ERROR] ollama: {model_id} not response.ok {response.text}")
                 return None
 
             return response.message.content
         except ValidationError as err:
-            print("ollama:ValidationError: ", err)
+            print("[ERROR] ollama:ValidationError: ", err)
             return None
         except Exception as exc:
-            print("ollama: general exception: ", exc)
+            print("[ERROR] ollama: general exception: ", exc)
             return None
 
     def gemini_execute_prompt(self, model_id, prompt: str, format_instructions=""):
