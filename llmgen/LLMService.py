@@ -18,7 +18,6 @@ class LLMService:
 
     # key : model
     supported_models = {
-        'L_Gemma3:1B': 'gemma3:1b',
         # Locally deployed models
         'L_Phi4': 'phi4',
         'L_Phi4_Q16': 'phi4:14b-fp16',
@@ -101,7 +100,7 @@ class LLMService:
         'MT5XL': 'google/mt5-xl',
         'MT5XXL': 'google/mt5-xxl',
         # HuggingFace Gemma
-        'Gemma2BIT': 'google/gemma-2b-it',
+        'Gemma227BIT': 'google/gemma-2-27b-it',
         # HuggingFace Mistral
         'Mistral7B03Instruct': 'mistralai/Mistral-7B-Instruct-v0.3',
         'Mistral7B03': 'mistralai/Mistral-7B-v0.3',
@@ -193,14 +192,14 @@ class LLMService:
         elif model_id.startswith('GPT'):
             response = self.gpt_execute_prompt(
                 model_id, prompt, format_instructions)
+        elif model_id.startswith('L_'):
+            response = self.ollama_execute_prompt(
+                model_id, prompt, format_instructions)
         elif model_id.startswith('Gemini'):
             response = self.gemini_execute_prompt(
                 model_id, prompt, format_instructions)
         elif model_id.startswith('Llama32'):
-            response = self.hf_execute_prompt_Llama32(
-                model_id, prompt, format_instructions)
-        elif model_id.startswith('L_'):
-            response = self.ollama_execute_prompt(
+            response = self.hf_execute_prompt(
                 model_id, prompt, format_instructions)
         else:  # use model from HF
             response = self.hf_execute_prompt(
@@ -208,23 +207,6 @@ class LLMService:
         # else:
         #     print("Model Skipped:{}".format(model_id))
         return response
-
-    def gemini_execute_prompt(self, model_id, prompt: str, format_instructions=""):
-        model_url = self.get_model_url(model_id)
-        if model_url == "":
-            model_url = self.get_model_url("")
-        try:
-            full_prompt = prompt + format_instructions
-            response = self.gemini_client.models.generate_content(
-                model=model_url, contents=full_prompt)
-            return response.text
-        except ValidationError as err:
-            # Esta excepción es más para Pydantic, pero la mantenemos por consistencia
-            print(f"gemini_execute_prompt:ValidationError: {err}")
-            return None
-        except Exception as exc:
-            print(f"gemini_execute_prompt: Excepción general: {exc}")
-            return None
 
     def gpt_execute_prompt(self, model_id="GPT4oMini", prompt="", format_instructions=""):
         model_url = self.get_model_url(model_id)
@@ -256,7 +238,7 @@ class LLMService:
                       gpt_response.refusal)
                 return None
             else:
-                pass
+                return gpt_response.content
                 # parsed_mc_question = parser.invoke(gpt_response.content)
                 # return parsed_mc_question
         except ValidationError as err:
@@ -285,7 +267,7 @@ class LLMService:
                 print("gpt_execute_prompt:gpt_response.refusal: ", gpt_response)
                 return None
             else:
-                pass
+                return gpt_response
                 # parsed_mc_question = parser.invoke(gpt_response)
                 # return parsed_mc_question
         except ValidationError as err:
@@ -295,80 +277,22 @@ class LLMService:
             print("gpt_execute_prompt: general exception: ", exc)
             return None
 
-    def hf_execute_prompt(self, model_id, prompt: str, format_instructions=""):
-        model_url = self.get_model_url(model_id)
-        if model_url == "":
-            model_url = self.get_model_url("Llama3170Instruct")
-
-        # "x-wait-for-model": "true"
-        headers = {"Authorization": f"Bearer {self.hf_api_key}"}
-        API_URL = f"https://api-inference.huggingface.co/models/{model_url}"
-        parameters = {}
-        if (not model_id.startswith("Flan")) and (not model_id.startswith("MT5")):
-            parameters['return_full_text'] = False
-        # if model_id == "MiniCPMo26":
-        #     parameters['return_full_text'] = False
-        # parser = PydanticOutputParser(pydantic_object=TraitList)
-        if format_instructions == "":
-            pass
-            # format_instructions = parser.get_format_instructions()
-
-        payload = {"inputs": prompt +
-                   format_instructions, "parameters": parameters}
-        try:
-            response = requests.post(
-                API_URL, headers=headers, json=payload, timeout=self.TIMEOUT)
-
-            # if not response.ok and response.status_code == 503: # model is cold. wait until model is loaded
-            #     print("Cold Model: {}".format(response.text))
-            #     print("Re-trying...")
-            #     headers = {"Authorization": f"Bearer {self.hf_api_key}", "x-wait-for-model": "true"}
-            #     response = requests.post(API_URL, headers=headers, json=payload, timeout=self.TIMEOUT)
-
-            if not response.ok:
-                if response.status_code == 503:  # model remains cold
-                    self.cold_models.append(model_id)
-                elif response.status_code == 504:  # model timeout
-                    self.timeout_models.append(model_id)
-                elif response.status_code == 429:  # Rate limit reached.
-                    print('hf_execute_prompt: Rate limit reached' + response.text)
-                    return "error=429"
-                else:  # response.status_code == 403 or 400: # error model
-                    self.error_models.append(model_id)
-                print('hf_execute_prompt: not response.ok' + response.text)
-                return None
-
-            generated_text = response.json()[0]['generated_text']
-            # if 'error' in generated_text:
-            #     print('hf_execute_prompt: ERROR: ' + generated_text['error'])
-            #     return None
-
-            # parsed_mc_question = parser.invoke(generated_text)
-            # return parsed_mc_question
-        except ValidationError as err:
-            print("hf_execute_prompt:ValidationError: ", err)
-            return None
-        except Exception as exc:
-            print("hf_execute_prompt: general exception: ", exc)
-            return None
-
     def ollama_execute_prompt(self, model_id, prompt: str, format_instructions=""):
+        # Ollama models are prefixed with 'L_'
         model_url = self.get_model_url(model_id)
         if model_url == "":
             model_url = self.get_model_url("L_Phi4")
 
-        headers = {}  # ""Content-Type": "application/json" x-wait-for-model": "true"
         API_URL = f"http://localhost:11434/api/generate"
-        # parser = PydanticOutputParser(pydantic_object=TraitList)
-        if format_instructions == "":
-            pass
-            # format_instructions = parser.get_format_instructions()
 
-        # payload = {"model": model_url,"prompt": prompt + format_instructions, "stream": False}
+        if format_instructions == "":
+            format_instructions = ""
+
         messages = [{"role": "user", "content": prompt + format_instructions}]
         try:
-            # response = requests.post(API_URL, headers=headers, json=payload, timeout=self.TIMEOUT)
-            response = chat(messages=messages, model=model_url, format="")
+            response = chat(messages=messages,
+                            model=model_url,
+                            format=format_instructions)
             if not response.done:
                 if response.status_code == 503:  # model remains cold
                     self.cold_models.append(model_id)
@@ -383,12 +307,6 @@ class LLMService:
                 return None
 
             return response.message.content
-            # generated_text = response.json()[0]['generated_text']
-            # generated_text = response.json()['response']
-            # parsed_mc_question = parser.invoke(generated_text)
-            # parsed_mc_question = TraitList.model_validate_json(response.message.content)
-            # return parsed_mc_question
-
         except ValidationError as err:
             print("ollama:ValidationError: ", err)
             return None
@@ -396,38 +314,52 @@ class LLMService:
             print("ollama: general exception: ", exc)
             return None
 
-    def hf_execute_prompt_Llama32(self, model_id, prompt: str, format_instructions=""):
+    def gemini_execute_prompt(self, model_id, prompt: str, format_instructions=""):
         model_url = self.get_model_url(model_id)
         if model_url == "":
-            model_url = self.get_model_url("Llama321Instruct")
+            model_url = self.get_model_url("Gemini25Flash")
+        try:
+            full_prompt = prompt + format_instructions
+            response = self.gemini_client.models.generate_content(
+                model=model_url,
+                contents=full_prompt
+            )
+            return response.text
+        except ValidationError as err:
+            print(f"[ERROR] gemini_execute_prompt:ValidationError: {err}")
+            return None
+        except Exception as exc:
+            print(f"[ERROR] gemini_execute_prompt: Excepción general: {exc}")
+            return None
 
-        # parser = PydanticOutputParser(pydantic_object=TraitList)
-        if format_instructions == "":
-            pass
-            # format_instructions = parser.get_format_instructions()
+    def hf_execute_prompt(self, model_id, prompt: str, format_instructions=""):
+        model_url = self.get_model_url(model_id)
+        if model_url == "":
+            model_url = self.get_model_url("Llama323Instruct")
+
         try:
             client = InferenceClient(
-                model_url,
-                token=self.hf_api_key,
-                timeout=self.TIMEOUT
+                provider="auto",
+                api_key=self.hf_api_key,
             )
-            messages = [
-                {"role": "user", "content": prompt + format_instructions}]
             completion = client.chat.completions.create(
                 model=model_url,
-                messages=messages
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt + format_instructions
+                    }
+                ]
             )
             generated_text = completion.choices[0].message.content
             if generated_text is not None and "error" in generated_text:
-                print("hf_llama32: error: ", generated_text)
+                print("[ERROR] hf_execute_prompt: ", generated_text)
                 return None
             else:
-                pass
-                # parsed_mc_question = parser.invoke(generated_text)
-                # return parsed_mc_question
+                return generated_text
         except ValidationError as err:
-            print("hf_llama32:ValidationError: ", err)
+            print("[ERROR] hf_execute_prompt:ValidationError: ", err)
             return None
         except Exception as exc:
-            print("hf_llama32: general exception: ", exc)
+            print("[ERROR] hf_execute_prompt: general exception: ", exc)
             return None
