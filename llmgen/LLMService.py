@@ -10,6 +10,8 @@ from huggingface_hub import InferenceClient
 
 from ollama import chat
 
+from google import genai
+
 
 class LLMService:
     TIMEOUT = 600  # in seconds
@@ -128,6 +130,9 @@ class LLMService:
         # 'GPT35Turbo0613': 'gpt-3.5-turbo-0613',  # snapshot June 13th 2023, deprecated June 13th 2024
         'GPT35Turbo1106': 'gpt-3.5-turbo-1106',  # snapshot November 6th 2023
         'GPT40613': 'gpt-4-0613',  # snapshot June 13th 2023
+
+        # Google Gemini models
+        'Gemini25Flash': 'gemini-2.5-flash',
     }  # ["gpt-4o-mini", "meta-llama/Meta-Llama-3.1-70B-Instruct"]
 
     def print_supported_llms(self):
@@ -151,6 +156,15 @@ class LLMService:
     )
 
     hf_api_key = os.environ.get("API_KEY_HUGGINGFACE")
+
+    try:
+        gemini_api_key = os.environ.get("GOOGLE_API_KEY")
+        if gemini_api_key:
+            gemini_client = genai.Client(api_key=gemini_api_key)
+        else:
+            print("GOOGLE_API_KEY not set. Gemini API will not be configured.")
+    except Exception as e:
+        print(f"Error initializing Gemini client: {e}")
 
     def get_all_models(self):
         return list(self.supported_models.keys())
@@ -179,6 +193,9 @@ class LLMService:
         elif model_id.startswith('GPT'):
             response = self.gpt_execute_prompt(
                 model_id, prompt, format_instructions)
+        elif model_id.startswith('Gemini'):
+            response = self.gemini_execute_prompt(
+                model_id, prompt, format_instructions)
         elif model_id.startswith('Llama32'):
             response = self.hf_execute_prompt_Llama32(
                 model_id, prompt, format_instructions)
@@ -191,6 +208,23 @@ class LLMService:
         # else:
         #     print("Model Skipped:{}".format(model_id))
         return response
+
+    def gemini_execute_prompt(self, model_id, prompt: str, format_instructions=""):
+        model_url = self.get_model_url(model_id)
+        if model_url == "":
+            model_url = self.get_model_url("")
+        try:
+            full_prompt = prompt + format_instructions
+            response = self.gemini_client.models.generate_content(
+                model=model_url, contents=full_prompt)
+            return response.text
+        except ValidationError as err:
+            # Esta excepción es más para Pydantic, pero la mantenemos por consistencia
+            print(f"gemini_execute_prompt:ValidationError: {err}")
+            return None
+        except Exception as exc:
+            print(f"gemini_execute_prompt: Excepción general: {exc}")
+            return None
 
     def gpt_execute_prompt(self, model_id="GPT4oMini", prompt="", format_instructions=""):
         model_url = self.get_model_url(model_id)
