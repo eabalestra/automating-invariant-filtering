@@ -2,6 +2,7 @@
 
 export OPENAI_API_KEY=
 export API_KEY_HUGGINGFACE=
+export GOOGLE_API_KEY=
 
 # Function to copy files with proper permissions
 safe_copy() {
@@ -103,7 +104,7 @@ safe_copy "$test_driver" "$augmented_test_driver"
 
 # generate tests using LLM
 echo "> Generate tests using LLM" | tee -a "$log_file"
-python -m llmgen.testgen.spec_counterexample_generator "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:6}" >>"$log_file" 2>&1
+python -m llmgen.testgen.spec_counterexample_generator "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:4}" >>"$log_file" 2>&1
 
 echo "> Prepare destination for the generated tests" | tee -a "$log_file"
 name_suffix="Augmented"
