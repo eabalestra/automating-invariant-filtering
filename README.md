@@ -34,19 +34,35 @@ Follow these steps to set up the tool on your system:
 
 2. **Set Environment Variables:**
 
-   - Set the following environment variables to point to the corresponding directories:
+   You can either set the environment variables manually or use the provided setup script.
+
+   **Option A: Use the Setup Script (Recommended)**
+   
+   ```bash
+   source config/setup_env.sh
+   ```
+
+   **Option B: Manual Configuration**
+   
+   Set the following environment variables to point to the corresponding directories:
 
    ```bash
    export DAIKONDIR=/path/to/daikon-5.8.2
    export SUBJECTS_DIR=/path/to/your/subjects
-   export SPECS_DIR=/path/to/your/specs
+   export SPECS_DIR=/path/to/your/specfuzzer-outputs
+   export OPENAI_API_KEY=your_openai_api_key_here
+   export API_KEY_HUGGINGFACE=your_huggingface_api_key_here
+   export GOOGLE_API_KEY=your_google_api_key_here
    ```
 
    **Explanation:**
 
    - `DAIKONDIR`: The directory where Daikon is installed.
-   - `SUBJECTS_DIR`: The directory containing the classes or subjects you wish to analyze.
+   - `SUBJECTS_DIR`: The directory containing the classes or subjects you wish to analyze (typically contains Maven/Gradle projects with src/main/java and src/test/java structure).
    - `SPECS_DIR`: The directory where SpecFuzzer generated specifications will be stored.
+   - `OPENAI_API_KEY`: Your OpenAI API key for LLM-based test generation (optional, if using OpenAI models).
+   - `API_KEY_HUGGINGFACE`: Your Hugging Face API key for accessing HuggingFace models (optional).
+   - `GOOGLE_API_KEY`: Your Google API key for accessing Google's LLM services (optional).
 
 3. **Create and Activate a Virtual Environment:**
 
@@ -58,7 +74,7 @@ Follow these steps to set up the tool on your system:
 4. **Install Python Dependencies:**
 
    ```bash
-   pip install -r requirements.txt
+   pip install -r config/requirements.txt
    ```
 
 ## Usage
