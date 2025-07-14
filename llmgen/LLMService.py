@@ -218,7 +218,11 @@ class LLMService:
             format_instructions = ""  # parser.get_format_instructions()
         try:
             messages = [
-                {"role": "user", "content": prompt + format_instructions}]
+                {
+                    "role": "user",
+                    "content": prompt + format_instructions
+                }
+            ]
             completion = self.gpt_client.chat.completions.create(
                 model=model_url,
                 messages=messages
