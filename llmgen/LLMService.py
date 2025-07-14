@@ -214,33 +214,23 @@ class LLMService:
             model_url = self.get_model_url("GPT4oMini")
 
         # parser = PydanticOutputParser(pydantic_object=TraitList)
-        def gpt_execute_prompt(self, model_id="GPT4oMini", prompt="", format_instructions="", pydantic_object=None):
-            model_url = self.get_model_url(model_id)
-            if model_url == "":
-                model_url = self.get_model_url("GPT4oMini")
-
-            if pydantic_object is not None:
-                parser = PydanticOutputParser(pydantic_object=pydantic_object)
-            else:
-                parser = None
-
-            if format_instructions == "" and parser is not None:
-                pass
-            # format_instructions = parser.get_format_instructions()
+        if format_instructions == "":
+            format_instructions = ""  # parser.get_format_instructions()
         try:
             messages = [
                 {"role": "user", "content": prompt + format_instructions}]
             completion = self.gpt_client.chat.completions.create(
-                model=model_url, messages=messages)
+                model=model_url,
+                messages=messages
+            )
             gpt_response = completion.choices[0].message
             if gpt_response.refusal:
                 print("gpt_execute_prompt:gpt_response.refusal: ",
                       gpt_response.refusal)
                 return None
             else:
-                return gpt_response.content
                 # parsed_mc_question = parser.invoke(gpt_response.content)
-                # return parsed_mc_question
+                return gpt_response  # parsed_mc_question
         except ValidationError as err:
             print("gpt_execute_prompt:ValidationError: ", err)
             return None
@@ -255,21 +245,21 @@ class LLMService:
 
         # parser = PydanticOutputParser(pydantic_object=TraitList)
         if format_instructions == "":
-            pass
-            # format_instructions = parser.get_format_instructions()
+            format_instructions = ""  # parser.get_format_instructions()
         try:
             messages = prompt + format_instructions
             completion = self.gpt_client.completions.create(
-                model=model_url, prompt=messages)
+                model=model_url,
+                prompt=messages
+            )
             gpt_response = completion.choices[0].text
 
             if 'error' in gpt_response:
                 print("gpt_execute_prompt:gpt_response.refusal: ", gpt_response)
                 return None
             else:
-                return gpt_response
                 # parsed_mc_question = parser.invoke(gpt_response)
-                # return parsed_mc_question
+                return gpt_response  # parsed_mc_question
         except ValidationError as err:
             print("gpt_execute_prompt:ValidationError: ", err)
             return None
