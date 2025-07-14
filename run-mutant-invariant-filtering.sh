@@ -1,5 +1,9 @@
 #!/bin/bash
+
+# shellcheck source=config/setup_env.sh disable=SC1091
 source config/setup_env.sh
+
+# shellcheck source=venv/bin/activate disable=SC1091
 source venv/bin/activate
 
 # Arguments

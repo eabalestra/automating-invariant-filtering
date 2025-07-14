@@ -37,7 +37,7 @@ safe_copy() {
 # shellcheck source=config/setup_env.sh disable=SC1091
 source config/setup_env.sh
 
-# shellcheck source=/dev/null
+# shellcheck source=venv/bin/activate disable=SC1091
 source venv/bin/activate
 
 # parameters

@@ -1,8 +1,11 @@
 #!/bin/bash
 # Script to analyze which specifications are filtered by each individual test
 
+# shellcheck source=config/setup_env.sh disable=SC1091
 source config/setup_env.sh
-source venv/bin/activate
+
+# shellcheck source=venv/bin/activate disable=SC1091
+[ -d venv ] && source venv/bin/activate
 
 [ -z "$DAIKONDIR" ] && {
     echo "> The environment variable DAIKONDIR is not set"
