@@ -19,6 +19,7 @@ target_class=$(find "$SUBJECTS_DIR/$subject_name/src/main/java" -type f -name "$
 method="$3"
 # TODO: this invs file is the same after bucketing?
 specfuzzer_invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
+# TODO: change this to the assertions file, no bucketing
 specfuzzer_assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1-buckets.assertions"
 
 test_class_name="${class_name}Tester"
@@ -64,7 +65,7 @@ subject_cp="$subject_sources/build/libs/*"
 cp_for_daikon="libs/*:$subject_cp"
 
 # Run script
-echo "### Running second round validation for $target_class" | tee -a "$log_file"
+echo "### Running second round validation for $(dirname "$target_class")" | tee -a "$log_file"
 echo "# Class: $class_name" | tee -a "$log_file"
 echo "# Method: $method" | tee -a "$log_file"
 echo "# Invariants file: $specfuzzer_invs_file" | tee -a "$log_file"
