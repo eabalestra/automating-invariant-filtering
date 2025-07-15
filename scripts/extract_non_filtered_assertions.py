@@ -16,12 +16,17 @@ set1 = {item for item in set1 if item and not item.startswith('buckets=') and no
 df = pd.read_csv(invalid_post_conditions_csv)
 set2 = set(df['invariant'].str.strip())
 
+# The specs that were filtered are those that are in both sets
+filtered_specs = set1 & set2
+
 # Find difference
 difference = set1 - set2
 
 assertions_file_name = os.path.basename(specfuzzer_assertions_file)
 print(f"Specs from {assertions_file_name}: {len(set1)}")
-print(f"Filtered specs: {len(set1) - len(difference)}")
+print(f"Filtered specs: {len(filtered_specs)}")
+for spec in sorted(filtered_specs):
+    print(f"  {spec}")
 
 # Write remaining specifications to output file
 if len(sys.argv) > 3:
@@ -34,9 +39,13 @@ if len(sys.argv) > 3:
 
     output_file = f'{output_directory}/{class_name}-{method_name}-specfuzzer-refined.assertions'
 
+    difference = sorted(difference, reverse=True)
     with open(output_file, 'w') as file:
         file.write(f"buckets={len(difference)}\n")
         file.write(f"specs={len(difference)}\n")
-        file.write('=====================================\n')
+        file.write("=====================================\n")
+        file.write(":::OBJECT\n")
+        file.write("=====================================\n")
+        file.write(":::POSTCONDITION\n")
         for item in difference:
             file.write(f'{item}\n')
