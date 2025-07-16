@@ -3,7 +3,7 @@ import os
 import sys
 import re
 from typing import List
-from code_extractor import extract_package_path
+from code_extractor import get_java_package_name
 from test_extractor import extract_tests_from_file
 
 
@@ -27,7 +27,7 @@ def add_throws_declaration(test_methods: List[str]) -> List[str]:
 
 
 def replace_class_references(test_list: List[str], subject_class: str) -> List[str]:
-    subject_package = extract_package_path(subject_class)
+    subject_package = get_java_package_name(subject_class)
     subject_dir = os.path.dirname(subject_class)
     package_files = glob.glob(os.path.join(subject_dir, '*.java'))
 

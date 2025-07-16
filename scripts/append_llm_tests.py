@@ -13,7 +13,7 @@ subject_class = sys.argv[4]
 
 def add_generated_tests_to_suite(destination_test_suite, test_suite):
     for test in test_suite:
-        append_test_method_to_file(destination_test_suite, test)
+        add_test_to_file(destination_test_suite, test)
 
 
 def append_tests_into_driver_file(file_path: str, test_methods: List[str]) -> None:
@@ -34,20 +34,20 @@ def append_tests_into_driver_file(file_path: str, test_methods: List[str]) -> No
     write_file(file_path, new_content, 'w')
 
 
-def append_test_method_to_file(destination_file: str, test_method: str) -> None:
+def add_test_to_file(test_file_path: str, new_test: str) -> None:
     try:
-        with open(destination_file, 'r+', encoding='utf-8') as df:
+        with open(test_file_path, 'r+', encoding='utf-8') as df:
             content = df.read()
             if '}' not in content:
                 print("No closing brace '}' found in the existing test file.")
                 return
             head, tail = content.rsplit('}', 1)
-            new_content = f"{head}\n{test_method}\n}}{tail}"
+            new_content = f"{head}\n{new_test}\n}}{tail}"
             df.seek(0)
             df.write(new_content)
             df.truncate()
     except IOError as e:
-        print(f'Error processing file {destination_file}: {e}')
+        print(f'Error processing file {test_file_path}: {e}')
 
 
 def extract_test_names(test_suite):

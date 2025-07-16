@@ -1,7 +1,7 @@
 import re
 
 
-def extract_package_path(file_path: str) -> str:
+def get_java_package_name(file_path: str) -> str:
     parts = file_path.split('/java/')
     if len(parts) > 1:
         result = parts[1].split('/')
