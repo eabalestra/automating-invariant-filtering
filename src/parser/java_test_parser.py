@@ -6,6 +6,11 @@ class JavaTestParser:
     def __init__(self):
         self.test_start_pattern = re.compile(r'^\s*@Test')
 
+    def parse_test_with_comments(self, input_string: str) -> str:
+        comments, test_methods = self.parse(input_string)
+        result = "\n".join(comments) + "\n" + "\n".join(test_methods)
+        return result
+
     def parse(self, input_string: str) -> Tuple[List[str], List[str]]:
         lines = input_string.split('\n')
         comments, first_test_block = self._parse_comments_and_test(lines)
@@ -63,7 +68,6 @@ class JavaTestParser:
 
                         # Replace the last line in extracted_test with just the test part
                         extracted_test[-1] = test_part
-                        extracted_test.append("\n")
                         test_method_ended = True
 
                         # Add the remaining part as a comment
@@ -71,12 +75,9 @@ class JavaTestParser:
                             comments.append(f"// {comment_part}")
                     else:
                         # Normal case: line ends cleanly with '}'
-                        extracted_test.append("\n")
                         test_method_ended = True
             else:
                 # Comment out everything that's not part of a test method
                 if line.strip():  # Only comment non-empty lines
-                    comments.append(f"// {line}")
-                else:
-                    comments.append(line)  # Keep empty lines as they are
+                    comments.append(f"// {line.strip()}")
         return comments, extracted_test

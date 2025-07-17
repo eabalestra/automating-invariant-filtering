@@ -1,4 +1,5 @@
 import pytest
+from textwrap import dedent
 
 from src.parser.java_test_parser import JavaTestParser
 
@@ -36,3 +37,64 @@ def test_parse_simple_test_method(parser):
     assert len(comments) > 0
     assert any(
         "// This is a comment before the test" in comment for comment in comments)
+
+
+def test_parse_simple_test_method_with_comments(parser):
+    input_string = dedent("""
+        This is a comment before the test
+        @Test
+        public void testExample() {
+            assertEquals(1, 1);
+        }
+        This is a comment after the test
+    """).strip()
+
+    expected_result = dedent("""
+        // This is a comment before the test
+        // This is a comment after the test
+        @Test
+        public void testExample() {
+            assertEquals(1, 1);
+        }
+    """).strip()
+
+    result = parser.parse_test_with_comments(input_string)
+
+    assert result == expected_result
+
+
+def test_parse_multiple_test_method_with_multiple_comments(parser):
+    input_string = dedent("""
+        This is a comment before the test
+        @Test
+        public void testExample() {
+            // This is a comment inside the test
+            assertEquals(1, 1);
+        }
+        This is a comment after the test
+        @Test
+        public void testExample() {
+            assertEquals(1, 1);
+        } [[This is a comment after the test]] 
+        This is a comment after the test
+    """).strip()
+
+    expected_result = dedent("""
+        // This is a comment before the test
+        // This is a comment after the test
+        // [[This is a comment after the test]]
+        // This is a comment after the test
+        @Test
+        public void testExample() {
+            // This is a comment inside the test
+            assertEquals(1, 1);
+        }
+        @Test
+        public void testExample() {
+            assertEquals(1, 1);
+        }
+    """).strip()
+
+    result = parser.parse_test_with_comments(input_string)
+
+    assert result == expected_result
