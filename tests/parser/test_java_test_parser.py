@@ -1,11 +1,11 @@
 import pytest
 
-from src.parser.TestParser import TestParser
+from src.parser.java_test_parser import JavaTestParser
 
 
 @pytest.fixture
 def parser():
-    return TestParser()
+    return JavaTestParser()
 
 
 def test_parse_simple_test_method(parser):

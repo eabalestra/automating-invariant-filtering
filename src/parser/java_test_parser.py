@@ -2,7 +2,7 @@ import re
 from typing import List, Tuple
 
 
-class TestParser:
+class JavaTestParser:
     def __init__(self):
         self.test_start_pattern = re.compile(r'^\s*@Test')
 
