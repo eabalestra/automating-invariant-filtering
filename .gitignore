@@ -35,4 +35,6 @@ TODO.md
 # experiments
 experiments/results/
 
+# Coverage
 .coverage
+htmlcov/
