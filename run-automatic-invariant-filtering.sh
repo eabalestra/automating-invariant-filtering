@@ -113,7 +113,7 @@ llm_fixed_test_suite="$tests_output_dir/${class_name}_${method_name}LlmFixedTest
 
 # get the compilable test suite
 echo "> Compile the test suite" | tee -a "$log_file"
-python scripts/discard_uncompilable_llm_tests.py "$tests_output_dir" "$augmented_test_suite" "$class_path" "$llm_fixed_test_suite" "$method_name" >>"$log_file" 2>&1
+python scripts/discard_uncompilable_llm_tests.py "$class_name" "$method_name" "$class_path" "$augmented_test_suite" "$llm_fixed_test_suite" "$tests_output_dir" >>"$log_file" 2>&1
 llm_compilable_test_suite="$tests_output_dir/${class_name}_${method_name}LlmCompilableTest.java"
 
 # append the generated tests by LLM to the existing test suite
