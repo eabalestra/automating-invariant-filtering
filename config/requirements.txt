@@ -88,3 +88,4 @@ tzdata==2025.1
 urllib3==2.3.0
 websockets==15.0.1
 zstandard==0.23.0
+pytest==8.3.4
