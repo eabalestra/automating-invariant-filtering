@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = ["-v", "--tb=short"]
+norecursedirs = ["scripts", "src", "config", "data", "experiments", "libs", "llmgen", "output", "*.egg", ".git", ".venv", "venv"]
