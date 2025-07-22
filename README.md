@@ -95,7 +95,7 @@ pip install -r config/requirements.txt
 
 The tool provides several scripts for different stages:
 
-1. **Automatic Invariant Filtering**: For each specification (postcondition) of the subject found in the `subject-1-buckets.assertions` file produced by SpecFuzzer, the tool attempts to generate a test that invalidates the postcondition using an LLM. Additionally, each compilable test is added to the original test suite of the subject.
+1. **Automatic Invariant Filtering**: For each specification (postcondition) of the subject found in the `<subject>-1-buckets.assertions` file produced by SpecFuzzer, the tool attempts to generate a test that invalidates the postcondition using an LLM. Additionally, each compilable test is added to the original test suite of the subject.
 
 2. **Second Round Validation**: Once the new test suite is generated with the new tests, specifications invalidated by the new test suite are discarded.
 
