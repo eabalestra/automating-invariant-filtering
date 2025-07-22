@@ -83,3 +83,4 @@ python3 experiments/collect_results.py
 echo ""
 
 echo "Done! All SpecFuzzer's subjects processed."
+echo "Results saved to experiments/results/test_generation_stats.csv"
