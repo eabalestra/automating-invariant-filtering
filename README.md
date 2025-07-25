@@ -140,7 +140,7 @@ export SPECS_DIR=specfuzzer-subject-results/specfuzzer-outputs
 2. Download the subjects used in SpecFuzzer (GAssert subjects) from [this link](https://drive.google.com/file/d/14QH1LFURZuDvWFJTXS8KYslt9H9S4tt-/view?usp=drive_link).
 
 ```bash
-unzip /path/to/GAssert.zip -d /desired/location
+tar -xzf GAssert.tar.gz -C /desired/location
 ```
 
 Set the environment variable in `config/setup_env.sh`:
