@@ -100,7 +100,7 @@ safe_copy "$test_driver" "$augmented_test_driver"
 
 # generate tests using LLM
 echo "> Generate tests using LLM" | tee -a "$log_file"
-python -m llmgen.testgen.spec_counterexample_generator "$output_dir" "$class_path" "$spec_file" "$method_name" "${@:4}" >>"$log_file" 2>&1
+python -m llmgen.testgen.spec_counterexample_generator "$output_dir" "$class_path" "$spec_file" "$method_name" "$test_suite" "${@:4}" >>"$log_file" 2>&1
 
 echo "> Prepare destination for the generated tests" | tee -a "$log_file"
 name_suffix="Augmented"
@@ -108,12 +108,12 @@ python scripts/prepare_destination_test_files.py "$augmented_test_suite" "$augme
 
 # fix the generated tests
 echo "> Fix the generated tests" | tee -a "$log_file"
-python scripts/fix_llm_tests.py "$tests_output_dir" "$llm_generated_test_suite" "$class_path" "$method_name" >>"$log_file" 2>&1
+python -m scripts.fix_llm_tests "$tests_output_dir" "$llm_generated_test_suite" "$class_path" "$method_name" >>"$log_file" 2>&1
 llm_fixed_test_suite="$tests_output_dir/${class_name}_${method_name}LlmFixedTest.java"
 
 # get the compilable test suite
 echo "> Compile the test suite" | tee -a "$log_file"
-python scripts/discard_uncompilable_llm_tests.py "$class_name" "$method_name" "$class_path" "$augmented_test_suite" "$llm_fixed_test_suite" "$tests_output_dir" >>"$log_file" 2>&1
+python -m scripts.discard_uncompilable_llm_tests "$class_name" "$method_name" "$class_path" "$augmented_test_suite" "$llm_fixed_test_suite" "$tests_output_dir" >>"$log_file" 2>&1
 llm_compilable_test_suite="$tests_output_dir/${class_name}_${method_name}LlmCompilableTest.java"
 
 # append the generated tests by LLM to the existing test suite
