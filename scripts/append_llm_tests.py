@@ -2,8 +2,13 @@ import sys
 import re
 from typing import List
 
-from file_manager import read_file, write_file
-from test_extractor import extract_tests_from_file
+try:
+    from scripts.test_extractor import extract_tests_from_file
+    from scripts.file_manager import read_file, write_file
+except ModuleNotFoundError:
+    # Fallback for direct script execution
+    from test_extractor import extract_tests_from_file
+    from file_manager import read_file, write_file
 
 destination_test_suite = sys.argv[1]
 destination_test_driver = sys.argv[2]
