@@ -18,6 +18,8 @@ class LLMService:
 
     # key : model
     supported_models = {
+        # small model for testing
+        'L_Gemma31': 'gemma3:1b',
         # Locally deployed models
         'L_Phi4': 'phi4',
         'L_Phi4_Q16': 'phi4:14b-fp16',
@@ -284,9 +286,11 @@ class LLMService:
 
         messages = [{"role": "user", "content": prompt + format_instructions}]
         try:
-            response = chat(messages=messages,
-                            model=model_url,
-                            format=format_instructions)
+            response = chat(
+                messages=messages,
+                model=model_url,
+                format=format_instructions
+            )
             if not response.done:
                 if response.status_code == 503:  # model remains cold
                     self.cold_models.append(model_id)
