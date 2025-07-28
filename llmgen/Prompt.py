@@ -4,6 +4,7 @@ from enum import Enum
 class PromptID(Enum):
     General_V1 = 0
     General_V2 = 1
+    NOT_COMPILABLE = 2
 
     @classmethod
     def all(cls):
@@ -55,6 +56,29 @@ class Prompt:
             self.prompt = self.template + prompt_template_section
         elif self.id == PromptID.General_V2:
             pass
+        elif self.id == PromptID.NOT_COMPILABLE:
+            template = """
+In the provided response, the test code is not compilable.
+Please fix the test code.
+The provided response is:
+{llm_response}
+The class code for the test is:
+{class_code}
+The method under test is:
+{method_code}
+Answer with the fixed test code. In JUnit format, with @Test annotation.
+
+            """
+            self.template = template.format(
+                llm_response=self.spec,
+                class_code=self.class_code,
+                method_code=self.method_code
+            )
+            self.prompt = self.template
+            print("="*25)
+            print("Prompt instantiated for NOT_COMPILABLE prompt.")
+            print(self.prompt)
+            print("="*25)
 
     def get_few_shot_examples(self, number_of_examples=3) -> str:
         answer = "Here are some examples of inputs and corresponding outputs:\n"
