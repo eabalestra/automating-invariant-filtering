@@ -5,8 +5,8 @@ import subprocess
 from pathlib import Path
 from typing import List, Tuple
 
-from code_extractor import get_java_package_name
-from append_llm_tests import add_test_to_file
+from scripts.code_extractor import get_java_package_name
+from scripts.append_llm_tests import add_test_to_file
 
 TEST_TEMPLATE = """
 package {package};
@@ -31,12 +31,25 @@ class TestCompiler:
         self._test_suite_package = None
         self._subject_package = None
 
+    def is_test_compilable(self, test_code: str) -> Tuple[bool, str]:
+        temp_file_path = None
+        try:
+            temp_file_path = self._create_temporary_test_file(test_code)
+            compilation_success = self._compile_test_file(temp_file_path)
+            return compilation_success, ""
+        except Exception as e:
+            return False, str(e)
+        finally:
+            if temp_file_path:
+                self._cleanup_files(temp_file_path)
+
     def get_compilable_tests(self, test_candidates: List[str]) -> List[str]:
         compilable_tests = []
         total_tests = len(test_candidates)
 
         for test_code in test_candidates:
-            if self._can_compile_test(test_code):
+            is_compilable, _ = self.is_test_compilable(test_code)
+            if is_compilable:
                 compilable_tests.append(test_code)
 
         print(f"Found {len(compilable_tests)}/{total_tests} compilable tests")
@@ -51,18 +64,6 @@ class TestCompiler:
         #         return cmd
         #     current_path = current_path.parent
         return ['javac', '-cp', DEFAULT_CLASSPATH]
-
-    def _can_compile_test(self, test_code: str) -> bool:
-        temp_file_path = None
-        try:
-            temp_file_path = self._create_temporary_test_file(test_code)
-            compilation_success = self._compile_test_file(temp_file_path)
-            return compilation_success
-        except Exception as e:
-            return False
-        finally:
-            if temp_file_path:
-                self._cleanup_files(temp_file_path)
 
     def _create_temporary_test_file(self, test_code: str) -> str:
         test_template = self._get_test_template(

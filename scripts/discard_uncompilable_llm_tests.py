@@ -1,8 +1,8 @@
 import os
 import sys
 
-from test_compiler import TestCompiler
-from test_extractor import extract_tests_from_file
+from scripts.test_compiler import TestCompiler
+from scripts.test_extractor import extract_tests_from_file
 
 class_name = sys.argv[1]
 method_name = sys.argv[2]

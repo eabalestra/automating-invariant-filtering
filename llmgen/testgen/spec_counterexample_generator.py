@@ -1,12 +1,17 @@
 from llmgen.Prompt import PromptID
 from llmgen.testgen.LLMTestGenerator import LLMTestGenerator
 from llmgen.utils.string_utils import list_of_strings
-from scripts import spec_processor, spec_reader, test_extractor, code_extractor
+
+from scripts import spec_processor, spec_reader, test_extractor
+from scripts import code_extractor
 
 import argparse
 import logging
 import os
 import time
+
+from scripts.fix_llm_tests import repair_unit_test
+from scripts.test_compiler import TestCompiler
 
 
 def add_spec_comment(code: str, spec: str) -> str:
@@ -36,6 +41,8 @@ def parse_args():
     parser.add_argument("subject_class", help="Path to the Java class file")
     parser.add_argument("specs_file", help="Path to the specifications file")
     parser.add_argument("method_name", help="Name of the method to test")
+    parser.add_argument("original_test_suite_path",
+                        help="Path to the original test suite file")
 
     parser.add_argument("-m", "--models", type=list_of_strings, dest="models_list",
                         default="", help="List the LLMs to run.", metavar="MODELS")
@@ -124,6 +131,7 @@ def main():
     class_name = os.path.basename(subject_class).replace('.java', '')
 
     specs = spec_reader.read_and_filter_specs(args.specs_file)
+
     output_dir = args.output_dir
     output_test_dir = os.path.join(output_dir, "test")
     os.makedirs(output_test_dir, exist_ok=True)
@@ -131,18 +139,22 @@ def main():
         output_test_dir, f"{class_name}_{args.method_name}LlmTest.java")
     log_file_path = os.path.join(output_test_dir, 'timestamps.log')
 
-    print(f"Model(s) used: {models}")
-    print(f"Prompt(s) used: {prompt_IDs}")
+    logging.info(f"Model(s) used: {models}")
+    logging.info(f"Prompt(s) used: {prompt_IDs}")
+
+    compiler = TestCompiler(class_path=subject_class,
+                            suite_path=args.original_test_suite_path,
+                            method_name=args.method_name)
 
     total_time = 0.0
     with open(suite_file_path, 'a') as suite, open(log_file_path, 'w') as log:
         for spec in specs:
-            print(f"Generating test for spec: {spec}")
+            logging.info(f"Generating test for spec: {spec}")
             updated_spec = spec_processor.update_specification_variables(
                 spec, class_name)
 
             start = time.time()
-            test_code = LLMrunner.generate_test(
+            llm_response = LLMrunner.generate_test(
                 class_code=class_code,
                 method_code=method_code,
                 spec=updated_spec,
@@ -152,7 +164,30 @@ def main():
             elapsed = time.time() - start
             total_time += elapsed
 
-            print(f"Generated test: {test_code}")
+            logging.info(
+                f"Generated response for spec: {spec}\n {llm_response}")
+
+            # If the LLM response is not compilable, try to fix it
+            test_code = spec_processor.remove_assertions_from_test(
+                llm_response)
+            test_code = test_extractor.extract_test_with_comments_from_string(
+                test_code)
+            fixed_test_code = repair_unit_test(
+                test_code, class_name, "llmTest", 0)
+
+            logging.error(f"Fixed test code: \n {fixed_test_code}")
+
+            is_compilable, compilation_error = compiler.is_test_compilable(
+                test_code=fixed_test_code)
+            if not is_compilable:
+                logging.warning("Test is not compilable.")
+                test_code = LLMrunner.generate_test(
+                    class_code=class_code,
+                    method_code=method_code,
+                    spec=llm_response + "\n" + compilation_error,
+                    prompt_ids=[PromptID.NOT_COMPILABLE],
+                    models_ids=models
+                )
 
             log.write(
                 f"Time taken for LLM response for {spec}: {elapsed:.4f} sec")
