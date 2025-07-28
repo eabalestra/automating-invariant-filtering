@@ -20,7 +20,7 @@ method="$3"
 # TODO: this invs file is the same after bucketing?
 specfuzzer_invs_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.inv.gz"
 # TODO: change this to the assertions file, no bucketing
-specfuzzer_assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1-buckets.assertions"
+specfuzzer_assertions_file="$SPECS_DIR/$subject_name/output/$class_name-$method-specfuzzer-1.assertions"
 
 test_class_name="${class_name}Tester"
 driver_name="${test_class_name}Driver"
