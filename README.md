@@ -139,6 +139,15 @@ export SPECS_DIR=specfuzzer-subject-results/specfuzzer-outputs
 
 2. Download the subjects used in SpecFuzzer (GAssert subjects) from [this link](https://drive.google.com/file/d/14QH1LFURZuDvWFJTXS8KYslt9H9S4tt-/view?usp=drive_link).
 
+If you lack a graphical interface, download the package with these commands:
+
+```bash
+pip install gdown
+gdown --fuzzy 'https://drive.google.com/file/d/14QH1LFURZuDvWFJTXS8KYslt9H9S4tt-/view'
+```
+
+Then, extract the package:
+
 ```bash
 tar -xzf GAssert.tar.gz -C /desired/location
 ```
