@@ -37,7 +37,7 @@ cd automating-invariant-filtering
   Or use mega-tools:
 
 ```bash
-# (Use mega-tools if preferred)
+megadl 'https://mega.nz/file/pPgmnCST#dObECd8W5VeIDz5xzSgeQnhmH_-BRnOzt1VKaGn7Ihg'
 ```
 
 - Unzip the archive:
