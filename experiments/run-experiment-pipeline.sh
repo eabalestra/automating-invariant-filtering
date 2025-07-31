@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# shellcheck source=scripts/init_env.sh disable=SC1091
-source scripts/init_env.sh
+# shellcheck source=config/setup_env.sh disable=SC1091
+source config/setup_env.sh
 
 # shellcheck source=/dev/null
 source venv/bin/activate
@@ -51,6 +51,10 @@ fi
 # Count the total number of lines (excluding empty lines and comments)
 total_lines=$(grep -v -e '^#' -e '^$' "$SUBJECTS_FILE" | wc -l)
 current_line=0
+
+echo "Models: $MODELS"
+echo "Prompts: $PROMPTS"
+echo "Total subjects to process: $total_lines"
 
 # Loop through each subject in the file and execute the tool
 while IFS= read -r subject; do
