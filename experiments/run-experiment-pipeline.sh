@@ -7,7 +7,7 @@ source config/setup_env.sh
 source venv/bin/activate
 
 # Default values
-DEFAULT_MODELS="L_Llama318Instruct"
+DEFAULT_MODELS="L_Llama318Instruct, mistral:7b-instruct-v0.3-fp16, phi4:14b-q4_K_M"
 DEFAULT_PROMPTS="General_V1"
 
 # Initialize variables
