@@ -52,9 +52,12 @@ fi
 total_lines=$(grep -v -e '^#' -e '^$' "$SUBJECTS_FILE" | wc -l)
 current_line=0
 
+echo "> Running experiment pipeline with the following configuration:"
 echo "Models: $MODELS"
 echo "Prompts: $PROMPTS"
+echo "Subjects file: $SUBJECTS_FILE"
 echo "Total subjects to process: $total_lines"
+echo ""
 
 # Loop through each subject in the file and execute the tool
 while IFS= read -r subject; do
