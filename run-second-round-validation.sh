@@ -90,6 +90,7 @@ python3 scripts/compile_subject.py "$subject_sources"
 
 # Perform the Dynamic Comparability Analysis
 echo '> Performing Dynamic Comparability Analysis from driver: '"$test_suite_driver" | tee -a "$log_file"
+echo -n > "$daikon_output_folder/${test_suite_driver}.decls-DynComp"
 java -cp "$cp_for_daikon" daikon.DynComp "$driver_fqname" --output-dir="$daikon_output_folder"
 
 # Run Chicory on the existing testsuite to create the valid trace
