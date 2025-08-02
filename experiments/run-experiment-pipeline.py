@@ -101,7 +101,7 @@ def read_subjects_file(subjects_file):
 def main():
     """Main pipeline execution."""
     # Default values
-    DEFAULT_MODELS = "L_Llama318Instruct, L_Mistral7B03Instruct, " "L_Phi4_Q4"
+    DEFAULT_MODELS = "L_Llama318Instruct, L_Mistral7B03Instruct, L_Phi4_Q4"
     DEFAULT_PROMPTS = "General_V1"
 
     # Parse command line arguments
@@ -170,9 +170,9 @@ def main():
             class_name,
             method_name,
             "-m",
-            args.models,
+            f'"{args.models}"',
             "-p",
-            args.prompts,
+            f'"{args.prompts}"',
         ]
 
         success1 = run_command(
