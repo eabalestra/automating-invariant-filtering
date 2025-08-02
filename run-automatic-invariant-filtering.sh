@@ -59,6 +59,8 @@ echo "# Class: $(basename "$class_path")"
 echo "# Spec file: $(basename "$spec_file")"
 echo "# Test suite: $(basename "$test_suite")"
 echo "# Test driver: $(basename "$test_driver")"
+echo "# Models: $4"
+echo "# Prompts: $5"
 
 if [[ ! -f "$class_path" ]]; then
     echo "Error: Class file $class_path not found!"
