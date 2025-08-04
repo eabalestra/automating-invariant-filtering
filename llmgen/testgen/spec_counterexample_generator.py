@@ -42,8 +42,9 @@ def parse_args():
     parser.add_argument("subject_class", help="Path to the Java class file")
     parser.add_argument("specs_file", help="Path to the specifications file")
     parser.add_argument("method_name", help="Name of the method to test")
-    parser.add_argument("original_test_suite_path",
-                        help="Path to the original test suite file")
+    parser.add_argument(
+        "original_test_suite_path", help="Path to the original test suite file"
+    )
 
     parser.add_argument(
         "-m",
@@ -184,9 +185,11 @@ def main():
     logging.info(f"Model(s) used: {models}")
     logging.info(f"Prompt(s) used: {prompt_IDs}")
 
-    compiler = TestCompiler(class_path=subject_class,
-                            suite_path=args.original_test_suite_path,
-                            method_name=args.method_name)
+    compiler = TestCompiler(
+        class_path=subject_class,
+        suite_path=args.original_test_suite_path,
+        method_name=args.method_name,
+    )
 
     total_time = 0.0
     with open(suite_file_path, "a") as suite, open(log_file_path, "w") as log:
@@ -207,21 +210,18 @@ def main():
             elapsed = time.time() - start
             total_time += elapsed
 
-            logging.info(
-                f"Generated response for spec: {spec}\n {llm_response}")
+            logging.info(f"Generated response for spec: {spec}\n {llm_response}")
 
             # If the LLM response is not compilable, try to fix it
-            test_code = spec_processor.remove_assertions_from_test(
-                llm_response)
-            test_code = test_extractor.extract_test_with_comments_from_string(
-                test_code)
-            fixed_test_code = repair_unit_test(
-                test_code, class_name, "llmTest", 0)
+            test_code = spec_processor.remove_assertions_from_test(llm_response)
+            test_code = test_extractor.extract_test_with_comments_from_string(test_code)
+            fixed_test_code = repair_unit_test(test_code, class_name, "", 0)
 
             logging.error(f"Fixed test code: \n {fixed_test_code}")
 
             is_compilable, compilation_error = compiler.is_test_compilable(
-                test_code=fixed_test_code)
+                test_code=fixed_test_code
+            )
             if not is_compilable:
                 logging.warning("Test is not compilable.")
                 test_code = LLMrunner.generate_test(
@@ -229,7 +229,7 @@ def main():
                     method_code=method_code,
                     spec=llm_response + "\n" + compilation_error,
                     prompt_ids=[PromptID.NOT_COMPILABLE],
-                    models_ids=models
+                    models_ids=models,
                 )
 
             log.write(f"Time taken for LLM response for {spec}: {elapsed:.4f} sec")
