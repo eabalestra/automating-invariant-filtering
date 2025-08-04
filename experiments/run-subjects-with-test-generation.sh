@@ -63,7 +63,7 @@ while IFS= read -r subject; do
     echo "Running tool with arguments: $1, $2, $3"
     echo "Progress: $percentage% ($current_line/$total_lines)"
 
-    ./run-automatic-invariant-filtering.sh "$1" "$2" "$3" -models "$MODELS" -p "$PROMPTS"
+    ./run-automatic-invariant-filtering.sh "$1" "$2" "$3" -m $MODELS -p $PROMPTS
 
     if [[ $? -ne 0 ]]; then
         echo "Error: Tool execution failed for subject $subject"

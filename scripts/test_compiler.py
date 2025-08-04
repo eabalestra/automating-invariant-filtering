@@ -11,8 +11,24 @@ from scripts.append_llm_tests import add_test_to_file
 TEST_TEMPLATE = """
 package {package};
 
-import org.junit.Test;
 import {subject_package}.*;
+
+import org.junit.*;
+import static org.junit.Assert.*;
+
+import java.util.*;
+import java.util.concurrent.*;
+import java.io.*;
+import java.lang.reflect.*;
+import java.math.*;
+import java.text.*;
+import java.net.*;
+import java.nio.*;
+import java.nio.file.*;
+import java.time.*;
+import java.util.stream.*;
+import java.util.function.*;
+import java.util.regex.*;
 
 public class TestClass {{
 }}
@@ -63,19 +79,15 @@ class TestCompiler:
         #         cmd = ['./gradlew', 'test', '--tests']
         #         return cmd
         #     current_path = current_path.parent
-        return ['javac', '-cp', DEFAULT_CLASSPATH]
+        return ["javac", "-cp", DEFAULT_CLASSPATH]
 
     def _create_temporary_test_file(self, test_code: str) -> str:
         test_template = self._get_test_template(
-            self.test_suite_package,
-            self.subject_package
+            self.test_suite_package, self.subject_package
         )
-        temp_file_path = os.path.join(
-            str(self.suite_path.parent),
-            TEMP_TEST_CLASS_NAME
-        )
+        temp_file_path = os.path.join(str(self.suite_path.parent), TEMP_TEST_CLASS_NAME)
 
-        with open(temp_file_path, 'w', encoding='utf-8') as f:
+        with open(temp_file_path, "w", encoding="utf-8") as f:
             f.write(test_template)
 
         add_test_to_file(temp_file_path, test_code)
@@ -83,8 +95,7 @@ class TestCompiler:
 
     def _compile_test_file(self, test_file_path: str) -> bool:
         subject_files = self._get_subject_files()
-        compilation_command = self.build_command + \
-            subject_files + [test_file_path]
+        compilation_command = self.build_command + subject_files + [test_file_path]
 
         success, error_msg = self._execute_compilation(compilation_command)
         return success
@@ -92,10 +103,7 @@ class TestCompiler:
     def _execute_compilation(self, compilation_command: List[str]) -> Tuple[bool, str]:
         try:
             subprocess.run(
-                compilation_command,
-                check=True,
-                capture_output=True,
-                text=True
+                compilation_command, check=True, capture_output=True, text=True
             )
             return True, ""
         except subprocess.CalledProcessError as e:
@@ -105,13 +113,12 @@ class TestCompiler:
             return False, str(e)
 
     def _get_subject_files(self) -> List[str]:
-        return glob.glob(os.path.join(str(self.class_path.parent), '*.java'))
+        return glob.glob(os.path.join(str(self.class_path.parent), "*.java"))
 
     @property
     def test_suite_package(self) -> str:
         if self._test_suite_package is None:
-            self._test_suite_package = get_java_package_name(
-                str(self.suite_path))
+            self._test_suite_package = get_java_package_name(str(self.suite_path))
         return self._test_suite_package
 
     @property
@@ -121,10 +128,7 @@ class TestCompiler:
         return self._subject_package
 
     def _get_test_template(self, package: str, subject_package: str) -> str:
-        return TEST_TEMPLATE.format(
-            package=package,
-            subject_package=subject_package
-        )
+        return TEST_TEMPLATE.format(package=package, subject_package=subject_package)
 
     def _cleanup_files(self, *file_paths: str) -> None:
         for file_path in file_paths:
