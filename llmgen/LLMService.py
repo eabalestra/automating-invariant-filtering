@@ -24,6 +24,7 @@ class LLMService:
         "L_Phi4": "phi4",
         "L_Phi4_Q16": "phi4:14b-fp16",
         "L_Phi3": "phi3",
+        "L_Llama323Instruct": "llama3.2:3b-instruct-q8_0",
         "L_Llama370Instruct_Q4": "llama3:70b-instruct",
         "L_Llama38Instruct": "llama3:8b-instruct-fp16",
         "L_Llama3170Instruct": "llama3.1:70b-instruct-fp16",
