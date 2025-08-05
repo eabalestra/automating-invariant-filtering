@@ -40,6 +40,11 @@ source config/setup_env.sh
 # shellcheck source=venv/bin/activate disable=SC1091
 source venv/bin/activate
 
+if [ "$1" == "-ll" ] || [ "$1" == "--llms" ] || [ "$1" == "--llm-list" ]; then
+    python -m llmgen.list_supported_llms -ll
+    exit 0
+fi
+
 # parameters
 subject_name=$1
 target_class_fqname="$2"
