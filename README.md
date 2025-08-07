@@ -58,7 +58,15 @@ DAIKONDIR=/desired/location/daikon-5.8.2
 - Pull the LLM models you intend to use, for example:
 
 ```bash
-ollama pull llama-3b-instruct
+ollama pull llama3:70b-instruct-q4_0
+```
+
+**Note**: Models with prefix `L_` (e.g., `L_Llama370Instruct_Q4`) are local models that run through Ollama. You must pull these models first before using them.
+
+To see available models:
+
+```bash
+./run-automatic-invariant-filtering.sh [-ll|--llms|--llm-list]
 ```
 
 ### 4. Configure Environment Variables
@@ -103,7 +111,7 @@ The tool provides several scripts for different stages:
 
 ```bash
 # Step 1: Run automatic filtering with LLM test generation
-./run-automatic-invariant-filtering.sh QueueAr_getFront DataStructures.QueueAr getFront -models "llama-3b-instruct" -p "General_V1"
+./run-automatic-invariant-filtering.sh QueueAr_getFront DataStructures.QueueAr getFront -models "L_Llama370Instruct_Q4" -p "General_V1"
 
 # Step 2: Validate with enhanced test suite
 ./run-second-round-validation.sh QueueAr_getFront DataStructures.QueueAr getFront
