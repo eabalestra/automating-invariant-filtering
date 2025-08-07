@@ -1,16 +1,9 @@
-import logging
 import os
 
 from openai import OpenAI
-import requests
-from langchain.output_parsers import PydanticOutputParser
 from pydantic import ValidationError
-from transformers import pipeline
-import torch
 from huggingface_hub import InferenceClient
-
-from ollama import chat
-
+from ollama import ChatResponse, chat
 from google import genai
 
 
@@ -24,7 +17,6 @@ class LLMService:
         "L_Phi4": "phi4",
         "L_Phi4_Q16": "phi4:14b-fp16",
         "L_Phi3": "phi3",
-        "L_Llama323Instruct": "llama3.2:3b-instruct-q8_0",
         "L_Llama370Instruct_Q4": "llama3:70b-instruct",
         "L_Llama38Instruct": "llama3:8b-instruct-fp16",
         "L_Llama3170Instruct": "llama3.1:70b-instruct-fp16",
@@ -184,8 +176,7 @@ class LLMService:
         response = None
         # avoid calling models currently cold/unsupported in HF or OPENAI
         # if model_id not in self.cold_models and model_id not in self.unsupported_models:
-        # print("Running Model:{}".format(model_id))
-        logging.info(f"Running Model: {model_id}")
+        # print(f"Executing prompt with model: {model_id}")
         if model_id == "GPT35TurboInstruct":
             response = self.gpt_old_execute_prompt(
                 model_id, prompt, format_instructions
@@ -225,7 +216,7 @@ class LLMService:
                 return None
             else:
                 # parsed_mc_question = parser.invoke(gpt_response.content)
-                return gpt_response  # parsed_mc_question
+                return gpt_response.content  # Return content string, not message object
         except ValidationError as err:
             print("gpt_execute_prompt:ValidationError: ", err)
             return None
@@ -268,30 +259,33 @@ class LLMService:
         model_url = self.get_model_url(model_id)
         if model_url == "":
             model_url = self.get_model_url("L_Phi4")
-
-        API_URL = f"http://localhost:11434/api/generate"
-
-        if format_instructions == "":
-            format_instructions = ""
-
-        messages = [{"role": "user", "content": prompt + format_instructions}]
         try:
-            response = chat(
-                messages=messages, model=model_url, format=format_instructions
+            response: ChatResponse = chat(
+                model=str(model_url),
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt,
+                    },
+                ],
             )
-            if not response.done:
-                if response.status_code == 503:  # model remains cold
-                    self.cold_models.append(model_id)
-                elif response.status_code == 504:  # model timeout
-                    self.timeout_models.append(model_id)
-                elif response.status_code == 429:  # Rate limit reached.
-                    print("ollama: Rate limit reached" + response.text)
-                    return "error=429"
-                else:  # response.status_code == 403 or 400: # error model
-                    self.error_models.append(model_id)
-                print(f"[ERROR] ollama: {model_id} not response.ok {response.text}")
-                return None
 
+            # if not response.done:
+            #     if response.status_code == 503:  # model remains cold
+            #         self.cold_models.append(model_id)
+            #     elif response.status_code == 504:  # model timeout
+            #         self.timeout_models.append(model_id)
+            #     elif response.status_code == 429:  # Rate limit reached.
+            #         print("ollama: Rate limit reached" + response.text)
+            #         return "error=429"
+            #     else:  # response.status_code == 403 or 400: # error model
+            #         self.error_models.append(model_id)
+            #     print(f"[ERROR] ollama: {model_id} not response.ok {response.text}")
+
+            if not response["done"]:
+                if response.get("error"):
+                    print(f"[ERROR] ollama: {model_id} error: {response['error']}")
+                    return None
             return response.message.content
         except ValidationError as err:
             print("[ERROR] ollama:ValidationError: ", err)

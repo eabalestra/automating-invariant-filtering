@@ -179,7 +179,7 @@ def main():
     total_time = 0.0
     with open(suite_file_path, "a") as suite, open(log_file_path, "w") as log:
         for spec in specs:
-            print(f"Generating test for spec: {spec}")
+            print(f"> Generating test for spec: {spec}")
             updated_spec = spec_processor.update_specification_variables(
                 spec, class_name
             )
