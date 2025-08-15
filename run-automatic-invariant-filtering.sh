@@ -90,6 +90,8 @@ mkdir -p "$output_dir"
 
 log_file="$output_dir/${class_name}_${method_name}.log"
 tests_output_dir="$output_dir/test"
+
+mkdir -p "$tests_output_dir"
 llm_generated_test_suite="$tests_output_dir/${class_name}_${method_name}LlmTest.java"
 
 # Clear old output files
