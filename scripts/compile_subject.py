@@ -9,10 +9,10 @@ current_dir = os.getcwd()
 os.chdir(subject_build_dir)
 
 result = subprocess.run(
-    ['./gradlew', '-q', '-Dskip.tests', 'jar'],
+    ["./gradlew", "clean", "-q", "-Dskip.tests", "jar"],
     stdin=subprocess.DEVNULL,
     stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL
+    stderr=subprocess.DEVNULL,
 )
 
 build_status = result.returncode
