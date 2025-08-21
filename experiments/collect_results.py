@@ -38,26 +38,42 @@ def create_name_mapping(subjects_map, existing_subjects):
     """
     name_mapping = {}
 
-    # Direct mapping for exact matches
+    # Direct mapping for exact matches (case sensitive)
     for subject in existing_subjects:
         if subject in subjects_map:
             name_mapping[subject] = (subject, subjects_map[subject])
 
-    # Handle naming variations
+    # Handle naming variations with case insensitive matching
     for existing_subject in existing_subjects:
         if existing_subject not in name_mapping:
-            # Try to find a match by method name
-            existing_parts = existing_subject.split("_")
-            if len(existing_parts) > 1:
-                existing_method = existing_parts[-1]
-            else:
-                existing_method = existing_subject
-
-            for mapped_subject, (class_name, method_name) in subjects_map.items():
-                if method_name == existing_method:
-                    mapping_info = (mapped_subject, (class_name, method_name))
-                    name_mapping[existing_subject] = mapping_info
+            # Try case insensitive direct match first
+            for mapped_subject, subject_info in subjects_map.items():
+                if existing_subject.lower() == mapped_subject.lower():
+                    name_mapping[existing_subject] = (mapped_subject, subject_info)
                     break
+
+            # If still not found, try to find a match by method name
+            if existing_subject not in name_mapping:
+                existing_parts = existing_subject.split("_")
+                if len(existing_parts) > 1:
+                    existing_method = existing_parts[-1]
+                else:
+                    existing_method = existing_subject
+
+                for mapped_subject, (class_name, method_name) in subjects_map.items():
+                    if method_name.lower() == existing_method.lower():
+                        # Check if class name also matches (case insensitive)
+                        if len(existing_parts) > 1:
+                            existing_class_part = existing_parts[0].lower()
+                            # Get last part of class name
+                            class_name_part = class_name.split(".")[-1].lower()
+                            if existing_class_part == class_name_part:
+                                mapping_info = (
+                                    mapped_subject,
+                                    (class_name, method_name),
+                                )
+                                name_mapping[existing_subject] = mapping_info
+                                break
 
     return name_mapping
 
