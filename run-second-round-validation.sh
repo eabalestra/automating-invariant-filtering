@@ -86,7 +86,7 @@ fi
 
 # Recompile the subject
 echo "> Recompiling subject: $target_class" | tee -a "$log_file"
-python3 scripts/compile_subject.py "$subject_sources"
+python3 scripts/compile_subject.py "$subject_sources" | tee -a "$log_file"
 
 # Perform the Dynamic Comparability Analysis
 echo '> Performing Dynamic Comparability Analysis from driver: '"$test_suite_driver" | tee -a "$log_file"
