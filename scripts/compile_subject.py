@@ -8,14 +8,28 @@ current_dir = os.getcwd()
 
 os.chdir(subject_build_dir)
 
-result = subprocess.run(
-    ["./gradlew", "clean", "-q", "-Dskip.tests", "jar"],
-    stdin=subprocess.DEVNULL,
-    stdout=subprocess.DEVNULL,
-    stderr=subprocess.DEVNULL,
-)
+build_status = None
+try:
+    result = subprocess.run(
+        ["./gradlew", "clean", "assemble", "testClasses", "-x", "test"],
+        cwd=subject_build_dir,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    build_status = result.returncode
 
-build_status = result.returncode
+    if result.returncode != 0:
+        print(f"Error occurred while building {subject_build_dir}")
+        print(f"Return code: {result.returncode}")
+        print("STDOUT:")
+        print(result.stdout)
+        print("STDERR:")
+        print(result.stderr)
+
+except Exception as e:
+    print(f"Exception occurred while building {subject_build_dir}: {e}")
+    build_status = 1
 
 os.chdir(current_dir)
 
